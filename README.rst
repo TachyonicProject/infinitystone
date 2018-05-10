@@ -1,17 +1,7 @@
-===============================
-Tachyonic Project Infinitystone
-===============================
-
-Quick links
------------
-
-* `Website <http://www.tachyonic.org/>`__.
-* `Documentation <http://www.tachyonic.org/sphinx/infinitystone>`__.
-
 Installation
-------------
+============
 
-Tachyonic Project Infinitystone currently fully supports `CPython <https://www.python.org/downloads/>`__ 3.6.
+Tachyonic Project infinitystone currently fully supports `CPython <https://www.python.org/downloads/>`__ 3.6.
 
 
 CPython
@@ -40,7 +30,7 @@ the cythonized infinitystone framework with the system's default C compiler.
 Source Code
 -----------
 
-Tachyonic Project Infinitystone infrastructure and code is hosted on `GitHub <https://github.com/TachyonicProject/infinitystone>`_.
+Tachyonic Project infinitystone infrastructure and code is hosted on `GitHub <https://github.com/TachyonicProject/infinitystone>`_.
 Making the code easy to browse, download, fork, etc. Pull requests are always
 welcome!
 
