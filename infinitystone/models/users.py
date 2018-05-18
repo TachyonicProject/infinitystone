@@ -29,22 +29,8 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import database_model
-from luxon import Model
+from luxon import register
 from luxon import SQLModel
-from luxon import Uuid
-from luxon import String
-from luxon import Text
-from luxon import DateTime
-from luxon import Boolean
-from luxon import Email
-from luxon import Phone
-from luxon import Enum
-from luxon import Index
-from luxon import ForeignKey
-from luxon import UniqueIndex
-from luxon import Username
-from luxon import Fqdn
 from luxon.utils.timezone import now
 
 from infinitystone.models.domains import luxon_domain
@@ -58,27 +44,28 @@ USERS = [
      1, now()),
 ]
 
-@database_model()
+
+@register.model()
 class luxon_user(SQLModel):
-    id = Uuid(default=uuid4, internal=True)
-    tag = String(hidden=True, max_length=30, null=False)
-    domain = Fqdn(internal=True)
-    tenant_id = Uuid(internal=True)
-    username = Username(max_length=100, null=False)
-    password = String(max_length=100, null=True)
-    email = Email(max_length=255)
-    name = String(max_length=100)
-    phone_mobile = Phone()
-    phone_office = Phone()
-    designation = Enum('', 'Mr','Mrs','Ms', 'Dr', 'Prof')
-    last_login = DateTime(readonly=True)
-    enabled = Boolean(default=True)
-    creation_time = DateTime(default=now, readonly=True)
-    unique_username = UniqueIndex(domain, username)
-    user_tenant_ref = ForeignKey(tenant_id, luxon_tenant.id)
-    user_domain_ref = ForeignKey(domain, luxon_domain.name)
-    users = Index(domain, username)
-    users_tenants = Index(domain, tenant_id)
-    users_domain = Index(domain)
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    tag = SQLModel.String(hidden=True, max_length=30, null=False)
+    domain = SQLModel.Fqdn(internal=True)
+    tenant_id = SQLModel.Uuid(internal=True)
+    username = SQLModel.Username(max_length=100, null=False)
+    password = SQLModel.String(max_length=100, null=True)
+    email = SQLModel.Email(max_length=255)
+    name = SQLModel.String(max_length=100)
+    phone_mobile = SQLModel.Phone()
+    phone_office = SQLModel.Phone()
+    designation = SQLModel.Enum('', 'Mr', 'Mrs', 'Ms', 'Dr', 'Prof')
+    last_login = SQLModel.DateTime(readonly=True)
+    enabled = SQLModel.Boolean(default=True)
+    creation_time = SQLModel.DateTime(default=now, readonly=True)
+    unique_username = SQLModel.UniqueIndex(domain, username)
+    user_tenant_ref = SQLModel.ForeignKey(tenant_id, luxon_tenant.id)
+    user_domain_ref = SQLModel.ForeignKey(domain, luxon_domain.name)
+    users = SQLModel.Index(domain, username)
+    users_tenants = SQLModel.Index(domain, tenant_id)
+    users_domain = SQLModel.Index(domain)
     primary_key = id
     db_default_rows = USERS
