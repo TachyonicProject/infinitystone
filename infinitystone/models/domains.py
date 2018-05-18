@@ -29,36 +29,23 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import database_model
-from luxon import Model
+from luxon import register
 from luxon import SQLModel
-from luxon import Uuid
-from luxon import String
-from luxon import Text
-from luxon import DateTime
-from luxon import Boolean
-from luxon import Email
-from luxon import Phone
-from luxon import Enum
-from luxon import Index
-from luxon import ForeignKey
-from luxon import UniqueIndex
-from luxon import Username
-from luxon import Fqdn
 from luxon.utils.timezone import now
 
 DOMAINS = [
     ('00000000-0000-0000-0000-000000000000', 'default', None, 1, now()),
 ]
 
-@database_model()
+
+@register.model()
 class luxon_domain(SQLModel):
-    id = Uuid(default=uuid4, internal=True)
-    name = Fqdn(null=False)
-    description = Text()
-    enabled = Boolean(default=True)
-    creation_time = DateTime(default=now, readonly=True)
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    name = SQLModel.Fqdn(null=False)
+    description = SQLModel.Text()
+    enabled = SQLModel.Boolean(default=True)
+    creation_time = SQLModel.DateTime(default=now, readonly=True)
     primary_key = id
-    unique_domain = UniqueIndex(name)
+    unique_domain = SQLModel.UniqueIndex(name)
     db_default_rows = DOMAINS
-    domains = Index(name)
+    domains = SQLModel.Index(name)

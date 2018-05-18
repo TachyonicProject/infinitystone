@@ -29,38 +29,25 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import database_model
-from luxon import Model
+from luxon import register
 from luxon import SQLModel
-from luxon import Uuid
-from luxon import String
-from luxon import Text
-from luxon import DateTime
-from luxon import Boolean
-from luxon import Email
-from luxon import Phone
-from luxon import Enum
-from luxon import Index
-from luxon import ForeignKey
-from luxon import UniqueIndex
-from luxon import Username
-from luxon import Fqdn
 from luxon.utils.timezone import now
 
 from infinitystone.models.domains import luxon_domain
 
-@database_model()
+
+@register.model()
 class luxon_tenant(SQLModel):
-    id = Uuid(default=uuid4, internal=True)
-    domain = Fqdn(internal=True)
-    tenant_id = Uuid(internal=True)
-    name = String(max_length=100, null=False)
-    enabled = Boolean(default=True)
-    creation_time = DateTime(default=now, readonly=True)
-    unique_tenant = UniqueIndex(domain, name)
-    tenants = Index(id, domain)
-    tenants_search_name = Index(domain, name)
-    tenants_per_domain = Index(domain)
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    domain = SQLModel.Fqdn(internal=True)
+    tenant_id = SQLModel.Uuid(internal=True)
+    name = SQLModel.String(max_length=100, null=False)
+    enabled = SQLModel.Boolean(default=True)
+    creation_time = SQLModel.DateTime(default=now, readonly=True)
+    unique_tenant = SQLModel.UniqueIndex(domain, name)
+    tenants = SQLModel.Index(id, domain)
+    tenants_search_name = SQLModel.Index(domain, name)
+    tenants_per_domain = SQLModel.Index(domain)
     primary_key = id
-    tenant_domain_ref = ForeignKey(domain, luxon_domain.name)
-    tenant_parent_ref = ForeignKey(tenant_id, id)
+    tenant_domain_ref = SQLModel.ForeignKey(domain, luxon_domain.name)
+    tenant_parent_ref = SQLModel.ForeignKey(tenant_id, id)

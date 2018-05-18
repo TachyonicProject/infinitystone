@@ -29,21 +29,8 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import database_model
+from luxon import register
 from luxon import SQLModel
-from luxon import Uuid
-from luxon import String
-from luxon import Text
-from luxon import DateTime
-from luxon import Boolean
-from luxon import Email
-from luxon import Phone
-from luxon import Enum
-from luxon import Index
-from luxon import ForeignKey
-from luxon import UniqueIndex
-from luxon import Username
-from luxon import Fqdn
 from luxon.utils.timezone import now
 
 ROLES = [
@@ -56,13 +43,14 @@ ROLES = [
     (str(uuid4()), 'Support', None, now()),
 ]
 
-@database_model()
+
+@register.model()
 class luxon_role(SQLModel):
-    id = Uuid(default=uuid4, internal=True)
-    name = String(max_length=64, null=False)
-    description = Text()
-    creation_time = DateTime(default=now, readonly=True)
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    name = SQLModel.String(max_length=64, null=False)
+    description = SQLModel.Text()
+    creation_time = SQLModel.DateTime(default=now, readonly=True)
     primary_key = id
-    unique_role = UniqueIndex(name)
+    unique_role = SQLModel.UniqueIndex(name)
     db_default_rows = ROLES
-    roles = Index(name)
+    roles = SQLModel.Index(name)

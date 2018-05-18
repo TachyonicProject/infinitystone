@@ -29,22 +29,8 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import database_model
-from luxon import Model
+from luxon import register
 from luxon import SQLModel
-from luxon import Uuid
-from luxon import String
-from luxon import Text
-from luxon import DateTime
-from luxon import Boolean
-from luxon import Email
-from luxon import Phone
-from luxon import Enum
-from luxon import Index
-from luxon import ForeignKey
-from luxon import UniqueIndex
-from luxon import Username
-from luxon import Fqdn
 from luxon.utils.timezone import now
 
 from infinitystone.models.domains import luxon_domain
@@ -60,18 +46,19 @@ USER_ROLES = [
      now()),
 ]
 
-@database_model()
+
+@register.model()
 class luxon_user_role(SQLModel):
-    id = Uuid(default=uuid4, internal=True)
-    role_id = Uuid()
-    domain = Fqdn(internal=True)
-    tenant_id = String()
-    user_id = Uuid()
-    creation_time = DateTime(readonly=True, default=now)
-    unique_user_role = UniqueIndex(role_id, tenant_id, user_id)
-    user_role_id_ref = ForeignKey(role_id, luxon_role.id)
-    user_role_domain_ref = ForeignKey(domain, luxon_domain.name)
-    user_role_tenant_ref = ForeignKey(tenant_id, luxon_tenant.id)
-    user_roles = Index(domain, tenant_id)
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    role_id = SQLModel.Uuid()
+    domain = SQLModel.Fqdn(internal=True)
+    tenant_id = SQLModel.String()
+    user_id = SQLModel.Uuid()
+    creation_time = SQLModel.DateTime(readonly=True, default=now)
+    unique_user_role = SQLModel.UniqueIndex(role_id, tenant_id, user_id)
+    user_role_id_ref = SQLModel.ForeignKey(role_id, luxon_role.id)
+    user_role_domain_ref = SQLModel.ForeignKey(domain, luxon_domain.name)
+    user_role_tenant_ref = SQLModel.ForeignKey(tenant_id, luxon_tenant.id)
+    user_roles = SQLModel.Index(domain, tenant_id)
     primary_key = id
     db_default_rows = USER_ROLES
