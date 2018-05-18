@@ -29,35 +29,21 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import database_model
-from luxon import Model
+from luxon import register
 from luxon import SQLModel
-from luxon import Uuid
-from luxon import String
-from luxon import Text
-from luxon import DateTime
-from luxon import Boolean
-from luxon import Email
-from luxon import Phone
-from luxon import Enum
-from luxon import Index
-from luxon import Uri
-from luxon import Word
-from luxon import ForeignKey
-from luxon import Fqdn
-from luxon import UniqueIndex
 from luxon.utils.timezone import now
 
-@database_model()
+
+@register.model()
 class luxon_endpoint(SQLModel):
-    id = Uuid(default=uuid4, internal=True)
-    name = Fqdn(max_length=64,null=False)
-    interface = Enum('public', 'internal', 'admin',null=False)
-    region = String(max_length=64, null=False)
-    uri = Uri(max_length=64, null=False)
-    creation_time = DateTime(default=now, internal=True)
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    name = SQLModel.Fqdn(max_length=64, null=False)
+    interface = SQLModel.Enum('public', 'internal', 'admin', null=False)
+    region = SQLModel.String(max_length=64, null=False)
+    uri = SQLModel.Uri(max_length=64, null=False)
+    creation_time = SQLModel.DateTime(default=now, internal=True)
     primary_key = id
-    unique_endpoint = UniqueIndex(interface, uri)
-    endpoint_name = Index(name)
-    endpoint_find = Index(name, interface)
-    endpoint_exact = Index(name, interface, region)
+    unique_endpoint = SQLModel.UniqueIndex(interface, uri)
+    endpoint_name = SQLModel.Index(name)
+    endpoint_find = SQLModel.Index(name, interface)
+    endpoint_exact = SQLModel.Index(name, interface, region)
