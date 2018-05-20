@@ -27,39 +27,44 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import g
-from luxon import db
-from luxon import GetLogger
-from luxon import register_resource
+from luxon import register
+from luxon import router
+from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.utils.api import model
 from infinitystone.models.roles import luxon_role
 
-log = GetLogger(__name__)
 
-@register_resource('GET', '/v1/roles', tag='admin')
-def roles(req, resp):
-    roles = model(luxon_role)
-    return roles
+@register.resources()
+class Roles(object):
+    def __init__(self):
+        router.add('GET', '/v1/role/{id}', self.role,
+                   tag='roles:view')
+        router.add('GET', '/v1/roles', self.roles,
+                   tag='roles:view')
+        router.add('POST', '/v1/role', self.create,
+                   tag='roles:admin')
+        router.add(['PUT', 'PATCH'], '/v1/role/{id}', self.update,
+                   tag='roles:admin')
+        router.add('DELETE', '/v1/role/{id}', self.delete,
+                   tag='roles:admin')
 
-@register_resource('POST', '/v1/role', tag='admin')
-def new_role(req, resp):
-    role = model(luxon_role, values=req.json)
-    role.commit()
-    return role
+    def role(self, req, resp, id):
+        return obj(req, luxon_role, sql_id=id)
 
-@register_resource([ 'PUT', 'PATCH' ], '/v1/role/{id}', tag='admin')
-def update_role(req, resp, id):
-    role = model(luxon_role, id=id, values=req.json)
-    role.commit()
-    return role
+    def roles(self, req, resp):
+        return sql_list(req, 'luxon_role', ('id',))
 
-@register_resource('GET', '/v1/role/{id}', tag='admin')
-def view_role(req, resp, id):
-    role = model(luxon_role, id=id)
-    return role
+    def create(self, req, resp):
+        role = obj(req, luxon_role)
+        role.commit()
+        return role
 
-@register_resource('DELETE', '/v1/role/{id}', tag='admin')
-def delete_role(req, resp, id):
-    role = model(luxon_role, id=id)
-    role.delete()
+    def update(self, req, resp, id):
+        role = obj(req, luxon_role, sql_id=id)
+        role.commit()
+        return role
+
+    def delete(self, req, resp, id):
+        role = obj(req, luxon_role, sql_id=id)
+        role.commit()
+        return role

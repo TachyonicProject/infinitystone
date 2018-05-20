@@ -28,13 +28,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import g
-from luxon import GetLogger
-from luxon.exceptions import AccessDenied
-from luxon import register_resources
+from luxon import register
+from luxon import router
+from luxon.exceptions import AccessDeniedError
+from luxon.utils.imports import get_class
 
-log = GetLogger(__name__)
+from infinitystone.utils.auth import (localize,
+                                      get_user_id,
+                                      get_context_roles)
 
-@register_resources()
+
+
+@register.resources()
 class Token(object):
     """Token Middleware.
 
@@ -51,24 +56,64 @@ class Token(object):
         openssl req  -nodes -new -x509  -keyout token.key -out token.cert
     """
     def __init__(self):
-        g.router.add('GET', '/v1/token', self.get)
-        g.router.add('POST', '/v1/token', self.post)
-        g.router.add('PATCH', '/v1/token', self.patch, tag='login')
+        self.realm = 'tachyonic'
+        router.add('GET', '/v1/token', self.get)
+        router.add('POST', '/v1/token', self.post)
+        router.add('PATCH', '/v1/token', self.patch)
 
     def get(self, req, resp):
-        return req.token
+        return req.credentials
 
     def post(self, req, resp):
         request_object = req.json
-        req.token.login(request_object.get('username',
-                                           None),
-                    request_object.get('password', None),
-                    request_object.get('domain', None))
-        return req.token
+        method = request_object.get('method', 'password')
+        driver = g.app.config.get('auth', 'driver')
+        driver = get_class(driver)()
+        if hasattr(driver, method):
+            method = getattr(driver, method)
+        else:
+            raise ValueError(
+                "'%s' authentication method not supported" % method
+            )
+
+        credentials = request_object.get('credentials')
+        username = request_object.get('username')
+        domain = request_object.get('domain')
+        if isinstance(credentials, dict):
+            method(username, domain, credentials=credentials)
+        elif credentials is None:
+            raise ValueError("Require 'credentials'")
+        else:
+            raise ValueError("Invalid 'credentials' provided")
+
+        # Creat User locally if not existing
+        localize(self.realm, username, domain)
+        # Get User_id
+        user_id = get_user_id(self.realm, username, domain)
+        # Get Roles
+        roles = get_context_roles(user_id, domain)
+        # Set roles in token
+        req.credentials.new(user_id, username=username, domain=domain)
+        req.credentials.roles = roles
+
+        return req.credentials
 
     def patch(self, req, resp):
         request_object = req.json
-        req.token.scope_token(req.token.token['token'],
-                              request_object.get('domain'),
-                              request_object.get('tenant_id'))
-        return req.token
+        domain = request_object.get('domain')
+        tenant_id = request_object.get('tenant_id')
+        user_id = req.credentials.user_id
+        if domain is not None:
+            req.credentials.domain = domain
+            req.credentials.roles = get_context_roles(user_id, domain)
+        if tenant_id is not None:
+            if req.credentials.domain is None:
+                raise AccessDeniedError('Require domain to scope tenant_id')
+            req.credentials.tenant_id = tenant_id
+            default_role = g.app.config.get(
+                'auth', 'default_tenant_role',
+                fallback='Customer')
+            req.credentials.roles = get_context_roles(user_id, domain,
+                                                      tenant_id)
+            req.credentials.roles = default_role
+        return req.credentials

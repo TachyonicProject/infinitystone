@@ -27,58 +27,49 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import g
-from luxon import GetLogger
-from luxon import register_resource
+from luxon import register
+from luxon import router
 from luxon.utils.password import hash
+from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.utils.api import model
 from infinitystone.models.users import luxon_user
 
-log = GetLogger(__name__)
 
-@register_resource('GET', '/v1/users', tag='role:root')
-def users(req, resp):
-    users = model(luxon_user, hide=('password',))
-    return users
+@register.resources()
+class Users(object):
+    def __init__(self):
+        router.add('GET', '/v1/user/{id}', self.user,
+                   tag='users:view')
+        router.add('GET', '/v1/users', self.users,
+                   tag='users:view')
+        router.add('POST', '/v1/user', self.create,
+                   tag='users:admin')
+        router.add(['PUT', 'PATCH'], '/v1/user/{id}', self.update,
+                   tag='users:admin')
+        router.add('DELETE', '/v1/user/{id}', self.delete,
+                   tag='users:admin')
 
-@register_resource('GET', '/v1/user/{id}', tag='role:root')
-def user(req, resp, id):
-    user = model(luxon_user, id=id, hide=('password',))
-    return user
+    def user(self, req, resp, id):
+        return obj(req, luxon_user, sql_id=id, hide=('password',))
 
-@register_resource('POST', '/v1/user', tag='role:root')
-def new_user(req, resp):
-    new_user = req.json.copy()
-    new_user['tag'] = 'tachyonic'
+    def users(self, req, resp):
+        return sql_list(req, 'luxon_user', ('id',))
 
-    if 'password' in new_user and new_user['password'] is not None:
-        new_user['password'] = hash(new_user['password'])
-    else:
-        del new_user['password']
+    def create(self, req, resp):
+        user = obj(req, luxon_user, hide=('password',))
+        if 'password' in req.json:
+            user['password'] = hash(req.json['password'])
+        user.commit()
+        return user
 
-    user = model(luxon_user, values=new_user, hide=('password',))
-    user.commit()
+    def update(self, req, resp, id):
+        user = obj(req, luxon_user, sql_id=id, hide=('password',))
+        if 'password' in req.json:
+            user['password'] = hash(req.json['password'])
+        user.commit()
+        return user
 
-    return user
-
-@register_resource([ 'PUT', 'PATCH' ], '/v1/user/{id}', tag='role:root')
-def update_user(req, resp, id):
-    update_user = req.json.copy()
-    update_user['tag'] = 'tachyonic'
-
-    if 'password' in update_user and update_user['password'] is not None:
-        update_user['password'] = hash(update_user['password'])
-    else:
-        del update_user['password']
-
-    user = model(luxon_user, id=id, values=update_user, hide=('password',))
-    user.commit()
-
-    return user
-
-
-@register_resource('DELETE', '/v1/user/{id}', tag='role:root')
-def delete_user(req, resp, id):
-    user = model(luxon_user, id=id, hide=('password',))
-    user.delete()
+    def delete(self, req, resp, id):
+        user = obj(req, luxon_user, sql_id=id, hide=('password',))
+        user.commit()
+        return user

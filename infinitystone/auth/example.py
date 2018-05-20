@@ -27,44 +27,17 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import register
-from luxon import router
-from psychokinetic.utils.api import sql_list, obj
-
-from infinitystone.models.endpoints import luxon_endpoint
+from luxon.exceptions import AccessDeniedError
 
 
-@register.resources()
-class Endpoints(object):
-    def __init__(self):
-        router.add('GET', '/v1/endpoint/{id}', self.endpoint,
-                   tag='endpoints:view')
-        router.add('GET', '/v1/endpoints', self.endpoints,
-                   tag='endpoints:view')
-        router.add('POST', '/v1/endpoint', self.create,
-                   tag='endpoints:admin')
-        router.add(['PUT', 'PATCH'], '/v1/endpoint/{id}', self.update,
-                   tag='endpoints:admin')
-        router.add('DELETE', '/v1/endpoint/{id}', self.delete,
-                   tag='endpoints:admin')
+class Example(object):
+    def password(self, username, domain, credentials):
+        try:
+            password = credentials['password']
+        except KeyError:
+            raise ValueError("No 'password' provided in 'credentials'")
 
-    def endpoint(self, req, resp, id):
-        return obj(req, luxon_endpoint, sql_id=id)
-
-    def endpoints(self, req, resp):
-        return sql_list(req, 'luxon_endpoint', ('id',))
-
-    def create(self, req, resp):
-        endpoint = obj(req, luxon_endpoint)
-        endpoint.commit()
-        return endpoint
-
-    def update(self, req, resp, id):
-        endpoint = obj(req, luxon_endpoint, sql_id=id)
-        endpoint.commit()
-        return endpoint
-
-    def delete(self, req, resp, id):
-        endpoint = obj(req, luxon_endpoint, sql_id=id)
-        endpoint.commit()
-        return endpoint
+        if domain is None and username == 'root' and password == 'password':
+            return True
+        else:
+            raise AccessDeniedError('Invalid credentials provided')
