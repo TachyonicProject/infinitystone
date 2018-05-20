@@ -27,39 +27,44 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import g
-from luxon import db
-from luxon import GetLogger
-from luxon import register_resource
+from luxon import register
+from luxon import router
+from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.utils.api import model
 from infinitystone.models.tenants import luxon_tenant
 
-log = GetLogger(__name__)
 
-@register_resource('GET', '/v1/tenants', tag='admin')
-def tenants(req, resp):
-    tenants = model(luxon_tenant)
-    return tenants
+@register.resources()
+class Tenants(object):
+    def __init__(self):
+        router.add('GET', '/v1/tenant/{id}', self.tenant,
+                   tag='tenants:view')
+        router.add('GET', '/v1/tenants', self.tenants,
+                   tag='tenants:view')
+        router.add('POST', '/v1/tenant', self.create,
+                   tag='tenants:admin')
+        router.add(['PUT', 'PATCH'], '/v1/tenant/{id}', self.update,
+                   tag='tenants:admin')
+        router.add('DELETE', '/v1/tenant/{id}', self.delete,
+                   tag='tenants:admin')
 
-@register_resource('POST', '/v1/tenant', tag='admin')
-def new_tenant(req, resp):
-    tenant = model(luxon_tenant, values=req.json)
-    tenant.commit()
-    return tenant
+    def tenant(self, req, resp, id):
+        return obj(req, luxon_tenant, sql_id=id)
 
-@register_resource([ 'PUT', 'PATCH' ], '/v1/tenant/{id}', tag='admin')
-def update_tenant(req, resp, id):
-    tenant = model(luxon_tenant, id=id, values=req.json)
-    tenant.commit()
-    return tenant
+    def tenants(self, req, resp):
+        return sql_list(req, 'luxon_tenant', ('id',))
 
-@register_resource('GET', '/v1/tenant/{id}', tag='admin')
-def view_tenant(req, resp, id):
-    tenant = model(luxon_tenant, id=id)
-    return tenant
+    def create(self, req, resp):
+        tenant = obj(req, luxon_tenant)
+        tenant.commit()
+        return tenant
 
-@register_resource('DELETE', '/v1/tenant/{id}', tag='admin')
-def delete_tenant(req, resp, id):
-    tenant = model(luxon_tenant, id=id)
-    tenant.delete()
+    def update(self, req, resp, id):
+        tenant = obj(req, luxon_tenant, sql_id=id)
+        tenant.commit()
+        return tenant
+
+    def delete(self, req, resp, id):
+        tenant = obj(req, luxon_tenant, sql_id=id)
+        tenant.commit()
+        return tenant

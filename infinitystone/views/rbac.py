@@ -28,11 +28,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import GetLogger
-from luxon import register_resource
-from luxon import register_resources
+from luxon import register
 from luxon import g
+from luxon import router
 from luxon.exceptions import ValidationError
-from luxon.exceptions import AccessDenied
+from luxon.exceptions import AccessDeniedError
 from luxon.exceptions import HTTPNotFound
 from luxon import db
 from luxon.utils.timezone import now
@@ -101,12 +101,13 @@ def check_context_auth(conn, user_id, domain, tenant_id):
         sql = "SELECT id FROM luxon_user_role WHERE " + query
         cur = conn.execute(sql, vals)
         if not cur.fetchone():
-            raise AccessDenied("User %s not authorized in requested context "
-                               ": domain '%s', tenant_id '%s'"
-                               % (req_user_id, domain, tenant_id))
+            raise AccessDeniedError(
+                "User %s not authorized in requested context "
+                ": domain '%s', tenant_id '%s'"
+                % (req_user_id, domain, tenant_id))
 
 
-@register_resource('GET', '/v1/rbac/domains')
+@register.resource('GET', '/v1/rbac/domains', tag='login')
 def rbac_domains(req, resp):
     """Supplies a List of available domains.
         Supplies a List of available domains.
@@ -137,7 +138,7 @@ def rbac_domains(req, resp):
     return domains_list
 
 
-@register_resource('GET', '/v1/rbac/tenants')
+@register.resource('GET', '/v1/rbac/tenants', tag='login')
 def rbac_tenants(req, resp):
     """Supplies a List of available tenants.
     Supplies a List of available tenants.
@@ -159,7 +160,7 @@ def rbac_tenants(req, resp):
         return json.dumps(tenants)
 
 
-@register_resource('GET', '/v1/rbac/roles')
+@register.resource('GET', '/v1/rbac/roles', tag='login')
 def rbac_roles(req, resp):
     """Supplies a List of available roles.
     Supplies a List of available roles.
@@ -175,7 +176,7 @@ def rbac_roles(req, resp):
         return json.dumps(roles)
 
 
-@register_resource('GET', '/v1/rbac/user/{id}')
+@register.resource('GET', '/v1/rbac/user/{id}', tag='login')
 def user_roles(req, resp, id):
     sql = "SELECT luxon_user_role.*,luxon_tenant.name as tenant_name," \
           "luxon_role.name as role_name FROM luxon_user_role LEFT JOIN " \
@@ -188,15 +189,15 @@ def user_roles(req, resp, id):
     return json.dumps(result, indent=4, sort_keys=True, default=str)
 
 
-@register_resources()
+@register.resources()
 class AddUserRoles():
     def __init__(self):
-        g.router.add('POST', '/v1/rbac/user/{id}/{role}',
-                     self.add_user_role, tag="admin")
-        g.router.add('POST', '/v1/rbac/user/{id}/{role}/{domain}',
-                     self.add_user_role, tag="admin")
-        g.router.add('POST', '/v1/rbac/user/{id}/{role}/{domain}/{tenant_id}',
-                     self.add_user_role, tag="admin")
+        router.add('POST', '/v1/rbac/user/{id}/{role}',
+                   self.add_user_role, tag="users:admin")
+        router.add('POST', '/v1/rbac/user/{id}/{role}/{domain}',
+                   self.add_user_role, tag="users:admin")
+        router.add('POST', '/v1/rbac/user/{id}/{role}/{domain}/{tenant_id}',
+                   self.add_user_role, tag="users:admin")
 
     def add_user_role(self, req, resp, id, role, domain=None, tenant_id=None):
         """
@@ -248,16 +249,16 @@ class AddUserRoles():
             return json.dumps(user_role, indent=4)
 
 
-@register_resources()
+@register.resources()
 class RmUserRoles():
     def __init__(self):
-        g.router.add('DELETE', '/v1/rbac/user/{id}/{role}',
-                     self.rm_user_role, tag="admin")
-        g.router.add('DELETE', '/v1/rbac/user/{id}/{role}/{domain}',
-                     self.rm_user_role, tag="admin")
-        g.router.add('DELETE',
-                     '/v1/rbac/user/{id}/{role}/{domain}/{tenant_id}',
-                     self.rm_user_role, tag="admin")
+        router.add('DELETE', '/v1/rbac/user/{id}/{role}',
+                   self.rm_user_role, tag="users:admin")
+        router.add('DELETE', '/v1/rbac/user/{id}/{role}/{domain}',
+                   self.rm_user_role, tag="users:admin")
+        router.add('DELETE',
+                   '/v1/rbac/user/{id}/{role}/{domain}/{tenant_id}',
+                   self.rm_user_role, tag="users:admin")
 
     def rm_user_role(self, req, resp, id, role, domain=None, tenant_id=None):
         """

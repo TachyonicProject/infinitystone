@@ -29,16 +29,70 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 
 from luxon import db
-from luxon.utils.cache import memoize
 from luxon.utils.password import valid as is_valid_password
 from luxon.utils.cast import to_list
+from luxon.exceptions import AccessDeniedError
+
+
+def localize(tag, username, domain):
+    with db() as conn:
+        values = [tag, username, ]
+        sql = 'SELECT username FROM luxon_user'
+        sql += ' WHERE'
+        sql += ' tag = %s'
+        sql += ' AND username = %s'
+        if domain is not None:
+            sql += ' AND domain = %s'
+            values.append(domain)
+        else:
+            sql += ' AND domain IS NULL'
+        result = conn.execute(sql,
+                              values).fetchall()
+
+        if len(result) == 0:
+            if domain is not None:
+                conn.execute('INSERT INTO luxon_user' +
+                             ' (tag, domain, username)' +
+                             ' VALUES' +
+                             ' (%s, %s, %s)',
+                             (tag, domain, username))
+            else:
+                conn.execute('INSERT INTO luxon_user' +
+                             ' (tag, username)' +
+                             ' VALUES' +
+                             ' (%s, %s)',
+                             (tag, username))
+
+            conn.commit()
+
+
+def get_user_id(tag, username, domain=None):
+    with db() as conn:
+        values = [tag, username, ]
+        sql = 'SELECT id FROM luxon_user'
+        sql += ' WHERE'
+        sql += ' tag = %s'
+        sql += ' AND username = %s'
+        if domain is not None:
+            sql += ' AND domain = %s'
+            values.append(domain)
+        else:
+            sql += ' AND domain IS NULL'
+        result = conn.execute(sql,
+                              values).fetchall()
+        if len(result) > 0:
+            return result[0]['id']
+        else:
+            raise ValueError('User not found')
+
 
 def get_domains():
     with db() as conn:
         crsr = conn.execute('SELECT * FROM luxon_domain')
         return crsr.fetchall()
 
-def user_roles(user_id):
+
+def get_user_roles(user_id):
     if user_id is None:
         # NOTE(cfrademan): SHORT-CIRCUIT - google is your friend.
         return []
@@ -69,24 +123,27 @@ def user_roles(user_id):
                     roles.append(role)
     return roles
 
+
 def user_domains(user_id):
     domains = []
-    for role in user_roles(user_id):
+    for role in get_user_roles(user_id):
         domain = role['domain']
         if domain not in domains:
             domains.append(domain)
     return domains
 
+
 def user_tenants(user_id):
     tenants = {}
-    for tenant in user_roles(user_id):
+    for tenant in get_user_roles(user_id):
         tenant_id = tenant['tenant_id']
         if tenant_id not in tenants:
             if tenant_id is not None:
                 tenants[tenant_id] = tenant['tenant']
     return tenants
 
-def context_roles(user_id, domain=None, tenant_id=None):
+
+def get_context_roles(user_id, domain=None, tenant_id=None):
     roles = []
     with db() as conn:
         values = []
@@ -122,31 +179,25 @@ def context_roles(user_id, domain=None, tenant_id=None):
 
     return roles
 
+
 def authorize(tag, username=None, password=None, domain=None):
     with db() as conn:
-        auth = {}
-        values = [ username, tag ]
-        sql = 'SELECT luxon_user.id AS user_id' + \
-              ' ,luxon_user.last_login AS last_login' + \
-              ' ,luxon_user.username AS username' + \
-              ' ,luxon_user.password AS password' + \
-              ' ,luxon_user.domain AS domain' + \
-              ' FROM luxon_user' + \
-              ' WHERE luxon_user.enabled = 1' + \
-              ' AND luxon_user.username = %s' + \
-              ' AND luxon_user.tag = %s'
+        values = [tag, username, ]
+        sql = 'SELECT username, password FROM luxon_user'
+        sql += ' WHERE'
+        sql += ' tag = %s'
+        sql += ' AND username = %s'
         if domain is not None:
-            sql += ' AND luxon_user.domain = %s'
+            sql += ' AND domain = %s'
             values.append(domain)
         else:
-            sql += ' AND luxon_user.domain IS NULL'
+            sql += ' AND domain IS NULL'
 
         crsr = conn.execute(sql, values)
         result = crsr.fetchone()
         if result is not None:
             # Validate Password againts stored HASHED Value.
             if is_valid_password(password, result['password']):
-                auth = result.copy()
-                return (True, auth,)
+                return True
 
-        return (False, auth,)
+        raise AccessDeniedError('Invalid credentials provided')
