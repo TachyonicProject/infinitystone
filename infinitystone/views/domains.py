@@ -27,39 +27,44 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import g
-from luxon import db
-from luxon import GetLogger
-from luxon import register_resource
+from luxon import register
+from luxon import router
+from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.utils.api import model
 from infinitystone.models.domains import luxon_domain
 
-log = GetLogger(__name__)
 
-@register_resource('GET', '/v1/domains', tag='admin')
-def domains(req, resp):
-    domains = model(luxon_domain)
-    return domains
+@register.resources()
+class Domains(object):
+    def __init__(self):
+        router.add('GET', '/v1/domain/{id}', self.domain,
+                   tag='domains:view')
+        router.add('GET', '/v1/domains', self.domains,
+                   tag='domains:view')
+        router.add('POST', '/v1/domain', self.create,
+                   tag='domains:admin')
+        router.add(['PUT', 'PATCH'], '/v1/domain/{id}', self.update,
+                   tag='domains:admin')
+        router.add('DELETE', '/v1/domain/{id}', self.delete,
+                   tag='domains:admin')
 
-@register_resource('POST', '/v1/domain', tag='admin')
-def new_domain(req, resp):
-    domain = model(luxon_domain, values=req.json)
-    domain.commit()
-    return domain
+    def domain(self, req, resp, id):
+        return obj(req, luxon_domain, sql_id=id)
 
-@register_resource([ 'PUT', 'PATCH' ], '/v1/domain/{id}', tag='admin')
-def update_domain(req, resp, id):
-    domain = model(luxon_domain, id=id, values=req.json)
-    domain.commit()
-    return domain
+    def domains(self, req, resp):
+        return sql_list(req, 'luxon_domain', ('id',))
 
-@register_resource('GET', '/v1/domain/{id}', tag='admin')
-def view_domain(req, resp, id):
-    domain = model(luxon_domain, id=id)
-    return domain
+    def create(self, req, resp):
+        domain = obj(req, luxon_domain)
+        domain.commit()
+        return domain
 
-@register_resource('DELETE', '/v1/domain/{id}', tag='admin')
-def delete_domain(req, resp, id):
-    domain = model(luxon_domain, id=id)
-    domain.delete()
+    def update(self, req, resp, id):
+        domain = obj(req, luxon_domain, sql_id=id)
+        domain.commit()
+        return domain
+
+    def delete(self, req, resp, id):
+        domain = obj(req, luxon_domain, sql_id=id)
+        domain.commit()
+        return domain
