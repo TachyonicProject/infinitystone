@@ -36,7 +36,7 @@ from luxon.exceptions import AccessDeniedError
 from luxon.exceptions import HTTPNotFound
 from luxon import db
 from luxon.utils.timezone import now
-from infinitystone.utils.api import parse_sql_where
+from luxon.utils.sql import build_where
 
 from uuid import uuid4
 import json
@@ -58,8 +58,7 @@ def check_unique(conn, id, role, domain, tenant_id):
     """
     sql = "SELECT id FROM luxon_user_role WHERE user_id=? AND role_id=? AND "
     vals = [id, role]
-    where = {"domain": domain, "tenant_id": tenant_id}
-    query, addvals = parse_sql_where(where)
+    query, addvals = build_where(domain=domain, tenant_id=tenant_id)
     sql += query
     cur = conn.execute(sql, (vals + addvals))
     if cur.fetchone():
@@ -90,10 +89,9 @@ def check_context_auth(conn, user_id, domain, tenant_id):
                            ('Administrator',))
         admin_id = cur.fetchone()['id']
 
-        where = {'user_id': req_user_id,
-                 'domain': domain,
-                 'tenant_id': tenant_id}
-        query, vals = parse_sql_where(where)
+        query, vals = build_where(user_id=req_user_id,
+                                  domain=domain,
+                                  tenant_id=tenant_id)
         query += " AND ('role_id'='00000000-0000-0000-0000-000000000000'"
         query += " OR role_id=?)"
         vals.append(admin_id)
@@ -282,7 +280,7 @@ class RmUserRoles():
                      'role_id': role,
                      'tenant_id': tenant_id,
                      'domain': domain}
-            query, vals = parse_sql_where(where)
+            query, vals = build_where(**where)
             sql = "DELETE FROM luxon_user_role WHERE " + query
             cur = conn.execute(sql, vals)
             conn.commit()
