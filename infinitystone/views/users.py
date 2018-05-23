@@ -53,18 +53,18 @@ class Users(object):
         return obj(req, luxon_user, sql_id=id, hide=('password',))
 
     def users(self, req, resp):
-        return sql_list(req, 'luxon_user', ('id',))
+        return sql_list(req, 'luxon_user', ('id', 'username', 'name'))
 
     def create(self, req, resp):
         user = obj(req, luxon_user, hide=('password',))
-        if 'password' in req.json:
+        if req.json.get('password') is not None:
             user['password'] = hash(req.json['password'])
         user.commit()
         return user
 
     def update(self, req, resp, id):
         user = obj(req, luxon_user, sql_id=id, hide=('password',))
-        if 'password' in req.json:
+        if req.json.get('password') is not None:
             user['password'] = hash(req.json['password'])
         user.commit()
         return user

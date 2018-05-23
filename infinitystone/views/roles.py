@@ -52,7 +52,7 @@ class Roles(object):
         return obj(req, luxon_role, sql_id=id)
 
     def roles(self, req, resp):
-        return sql_list(req, 'luxon_role', ('id',))
+        return sql_list(req, 'luxon_role', ('id', 'name', ))
 
     def create(self, req, resp):
         role = obj(req, luxon_role)
