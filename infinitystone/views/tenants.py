@@ -52,7 +52,7 @@ class Tenants(object):
         return obj(req, luxon_tenant, sql_id=id)
 
     def tenants(self, req, resp):
-        return sql_list(req, 'luxon_tenant', ('id',))
+        return sql_list(req, 'luxon_tenant', ('id', 'name',))
 
     def create(self, req, resp):
         tenant = obj(req, luxon_tenant)
