@@ -38,21 +38,22 @@ from infinitystone.models.endpoints import luxon_endpoint
 class Endpoints(object):
     def __init__(self):
         router.add('GET', '/v1/endpoint/{id}', self.endpoint,
-                   tag='endpoints:view')
+                   tag='login')
         router.add('GET', '/v1/endpoints', self.endpoints,
-                   tag='endpoints:view')
+                   tag='login')
         router.add('POST', '/v1/endpoint', self.create,
-                   tag='endpoints:admin')
+                   tag='admin')
         router.add(['PUT', 'PATCH'], '/v1/endpoint/{id}', self.update,
-                   tag='endpoints:admin')
+                   tag='admin')
         router.add('DELETE', '/v1/endpoint/{id}', self.delete,
-                   tag='endpoints:admin')
+                   tag='admin')
 
     def endpoint(self, req, resp, id):
         return obj(req, luxon_endpoint, sql_id=id)
 
     def endpoints(self, req, resp):
-        return sql_list(req, 'luxon_endpoint', ('id',))
+        return sql_list(req, 'luxon_endpoint', ('id', 'name', 'interface',
+                                                'region', 'uri', ))
 
     def create(self, req, resp):
         endpoint = obj(req, luxon_endpoint)

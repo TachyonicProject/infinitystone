@@ -38,7 +38,7 @@ from infinitystone.models.domains import luxon_domain
 class Domains(object):
     def __init__(self):
         router.add('GET', '/v1/domain/{id}', self.domain,
-                   tag='domains:view')
+                   tag='login')
         router.add('GET', '/v1/domains', self.domains,
                    tag='domains:view')
         router.add('POST', '/v1/domain', self.create,
@@ -52,7 +52,7 @@ class Domains(object):
         return obj(req, luxon_domain, sql_id=id)
 
     def domains(self, req, resp):
-        return sql_list(req, 'luxon_domain', ('id',))
+        return sql_list(req, 'luxon_domain', ('id', 'name',))
 
     def create(self, req, resp):
         domain = obj(req, luxon_domain)
