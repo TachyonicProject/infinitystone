@@ -30,13 +30,11 @@
 from luxon import g
 from luxon import register
 from luxon import router
-from luxon.exceptions import AccessDeniedError
 from luxon.utils.imports import get_class
 
 from infinitystone.utils.auth import (localize,
                                       get_user_id,
                                       get_context_roles)
-
 
 
 @register.resources()
@@ -107,8 +105,6 @@ class Token(object):
             req.credentials.domain = domain
             req.credentials.roles = get_context_roles(user_id, domain)
         if tenant_id is not None:
-            if req.credentials.domain is None:
-                raise AccessDeniedError('Require domain to scope tenant_id')
             req.credentials.tenant_id = tenant_id
             default_role = g.app.config.get(
                 'auth', 'default_tenant_role',
