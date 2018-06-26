@@ -39,8 +39,7 @@ class Endpoints(object):
     def __init__(self):
         router.add('GET', '/v1/endpoint/{id}', self.endpoint,
                    tag='login')
-        router.add('GET', '/v1/endpoints', self.endpoints,
-                   tag='login')
+        router.add('GET', '/v1/endpoints', self.endpoints)
         router.add('POST', '/v1/endpoint', self.create,
                    tag='admin')
         router.add(['PUT', 'PATCH'], '/v1/endpoint/{id}', self.update,

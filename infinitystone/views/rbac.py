@@ -83,7 +83,7 @@ def check_context_auth(conn, user_id, domain, tenant_id):
         domain (str): Name of the domain.
         tenant_id (str): UUID of the tenant.
     """
-    req_user_id = g.current_request.token.user_id
+    req_user_id = g.current_request.credentials.user_id
     if req_user_id != '00000000-0000-0000-0000-000000000000':
         cur = conn.execute("SELECT id FROM luxon_role WHERE name=?",
                            ('Administrator',))
@@ -275,6 +275,9 @@ class RmUserRoles():
             404 Not Found if now entry was affected
 
         """
+        if domain and domain.lower() == "none":
+            domain = None
+
         with db() as conn:
             where = {'user_id': id,
                      'role_id': role,
