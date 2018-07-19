@@ -33,9 +33,9 @@ from luxon import register
 from luxon import SQLModel
 from luxon.utils.timezone import now
 
-from infinitystone.models.domains import luxon_domain
-from infinitystone.models.tenants import luxon_tenant
-from infinitystone.models.roles import luxon_role
+from infinitystone.models.domains import infinitystone_domain
+from infinitystone.models.tenants import infinitystone_tenant
+from infinitystone.models.roles import infinitystone_role
 
 USER_ROLES = [
     ('00000000-0000-0000-0000-000000000000',
@@ -48,7 +48,7 @@ USER_ROLES = [
 
 
 @register.model()
-class luxon_user_role(SQLModel):
+class infinitystone_user_role(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     role_id = SQLModel.Uuid()
     domain = SQLModel.Fqdn(internal=True)
@@ -56,9 +56,9 @@ class luxon_user_role(SQLModel):
     user_id = SQLModel.Uuid()
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     unique_user_role = SQLModel.UniqueIndex(role_id, tenant_id, user_id)
-    user_role_id_ref = SQLModel.ForeignKey(role_id, luxon_role.id)
-    user_role_domain_ref = SQLModel.ForeignKey(domain, luxon_domain.name)
-    user_role_tenant_ref = SQLModel.ForeignKey(tenant_id, luxon_tenant.id)
+    user_role_id_ref = SQLModel.ForeignKey(role_id, infinitystone_role.id)
+    user_role_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
+    user_role_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
     user_roles = SQLModel.Index(domain, tenant_id)
     primary_key = id
     db_default_rows = USER_ROLES
