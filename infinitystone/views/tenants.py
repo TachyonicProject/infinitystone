@@ -31,7 +31,7 @@ from luxon import register
 from luxon import router
 from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.models.tenants import luxon_tenant
+from infinitystone.models.tenants import infinitystone_tenant
 
 
 @register.resources()
@@ -49,22 +49,22 @@ class Tenants(object):
                    tag='tenants:admin')
 
     def tenant(self, req, resp, id):
-        return obj(req, luxon_tenant, sql_id=id)
+        return obj(req, infinitystone_tenant, sql_id=id)
 
     def tenants(self, req, resp):
-        return sql_list(req, 'luxon_tenant', ('id', 'name',))
+        return sql_list(req, 'infinitystone_tenant', ('id', 'name',))
 
     def create(self, req, resp):
-        tenant = obj(req, luxon_tenant)
+        tenant = obj(req, infinitystone_tenant)
         tenant.commit()
         return tenant
 
     def update(self, req, resp, id):
-        tenant = obj(req, luxon_tenant, sql_id=id)
+        tenant = obj(req, infinitystone_tenant, sql_id=id)
         tenant.commit()
         return tenant
 
     def delete(self, req, resp, id):
-        tenant = obj(req, luxon_tenant, sql_id=id)
+        tenant = obj(req, infinitystone_tenant, sql_id=id)
         tenant.commit()
         return tenant

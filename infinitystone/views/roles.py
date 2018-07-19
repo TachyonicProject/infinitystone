@@ -31,7 +31,7 @@ from luxon import register
 from luxon import router
 from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.models.roles import luxon_role
+from infinitystone.models.roles import infinitystone_role
 
 
 @register.resources()
@@ -49,22 +49,22 @@ class Roles(object):
                    tag='roles:admin')
 
     def role(self, req, resp, id):
-        return obj(req, luxon_role, sql_id=id)
+        return obj(req, infinitystone_role, sql_id=id)
 
     def roles(self, req, resp):
-        return sql_list(req, 'luxon_role', ('id', 'name', ))
+        return sql_list(req, 'infinitystone_role', ('id', 'name', ))
 
     def create(self, req, resp):
-        role = obj(req, luxon_role)
+        role = obj(req, infinitystone_role)
         role.commit()
         return role
 
     def update(self, req, resp, id):
-        role = obj(req, luxon_role, sql_id=id)
+        role = obj(req, infinitystone_role, sql_id=id)
         role.commit()
         return role
 
     def delete(self, req, resp, id):
-        role = obj(req, luxon_role, sql_id=id)
+        role = obj(req, infinitystone_role, sql_id=id)
         role.commit()
         return role

@@ -33,11 +33,11 @@ from luxon import register
 from luxon import SQLModel
 from luxon.utils.timezone import now
 
-from infinitystone.models.domains import luxon_domain
+from infinitystone.models.domains import infinitystone_domain
 
 
 @register.model()
-class luxon_tenant(SQLModel):
+class infinitystone_tenant(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     domain = SQLModel.Fqdn(internal=True)
     tenant_id = SQLModel.Uuid(internal=True)
@@ -49,5 +49,5 @@ class luxon_tenant(SQLModel):
     tenants_search_name = SQLModel.Index(domain, name)
     tenants_per_domain = SQLModel.Index(domain)
     primary_key = id
-    tenant_domain_ref = SQLModel.ForeignKey(domain, luxon_domain.name)
+    tenant_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
     tenant_parent_ref = SQLModel.ForeignKey(tenant_id, id)

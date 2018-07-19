@@ -37,7 +37,7 @@ from luxon.exceptions import AccessDeniedError
 def localize(tag, username, domain):
     with db() as conn:
         values = [tag, username, ]
-        sql = 'SELECT username FROM luxon_user'
+        sql = 'SELECT username FROM infinitystone_user'
         sql += ' WHERE'
         sql += ' tag = %s'
         sql += ' AND username = %s'
@@ -51,13 +51,13 @@ def localize(tag, username, domain):
 
         if len(result) == 0:
             if domain is not None:
-                conn.execute('INSERT INTO luxon_user' +
+                conn.execute('INSERT INTO infinitystone_user' +
                              ' (tag, domain, username)' +
                              ' VALUES' +
                              ' (%s, %s, %s)',
                              (tag, domain, username))
             else:
-                conn.execute('INSERT INTO luxon_user' +
+                conn.execute('INSERT INTO infinitystone_user' +
                              ' (tag, username)' +
                              ' VALUES' +
                              ' (%s, %s)',
@@ -69,7 +69,7 @@ def localize(tag, username, domain):
 def get_user_id(tag, username, domain=None):
     with db() as conn:
         values = [tag, username, ]
-        sql = 'SELECT id FROM luxon_user'
+        sql = 'SELECT id FROM infinitystone_user'
         sql += ' WHERE'
         sql += ' tag = %s'
         sql += ' AND username = %s'
@@ -88,7 +88,7 @@ def get_user_id(tag, username, domain=None):
 
 def get_domains():
     with db() as conn:
-        crsr = conn.execute('SELECT * FROM luxon_domain')
+        crsr = conn.execute('SELECT * FROM infinitystone_domain')
         return crsr.fetchall()
 
 
@@ -102,17 +102,17 @@ def get_user_roles(user_id):
 
     with db() as conn:
         query = 'SELECT' + \
-                ' luxon_user_role.id AS assignment_id,' + \
-                ' luxon_role.name AS role,' + \
-                ' luxon_user_role.role_id AS role_id,' + \
-                ' luxon_user_role.domain AS domain,' + \
-                ' luxon_user_role.tenant_id AS tenant_id,' + \
-                ' luxon_tenant.name AS tenant FROM' + \
-                ' luxon_user_role LEFT JOIN luxon_role ON' + \
-                ' luxon_user_role.role_id = luxon_role.id' + \
-                ' LEFT JOIN luxon_tenant ON' + \
-                ' luxon_user_role.tenant_id = luxon_tenant.id' + \
-                ' WHERE luxon_user_role.user_id = %s'
+                ' infinitystone_user_role.id AS assignment_id,' + \
+                ' infinitystone_role.name AS role,' + \
+                ' infinitystone_user_role.role_id AS role_id,' + \
+                ' infinitystone_user_role.domain AS domain,' + \
+                ' infinitystone_user_role.tenant_id AS tenant_id,' + \
+                ' infinitystone_tenant.name AS tenant FROM' + \
+                ' infinitystone_user_role LEFT JOIN infinitystone_role ON' + \
+                ' infinitystone_user_role.role_id = infinitystone_role.id' + \
+                ' LEFT JOIN infinitystone_tenant ON' + \
+                ' infinitystone_user_role.tenant_id = infinitystone_tenant.id' + \
+                ' WHERE infinitystone_user_role.user_id = %s'
 
         crsr = conn.execute(query, user_id)
         roles = to_list(crsr.fetchall())
@@ -149,28 +149,28 @@ def get_context_roles(user_id, domain=None, tenant_id=None):
         values = []
         values.append(user_id)
         query = 'SELECT' + \
-                ' luxon_user_role.id as assignment_id,' + \
-                ' luxon_user_role.role_id AS role_id,' + \
-                ' luxon_user_role.domain as domain,' + \
-                ' luxon_role.name as role,' + \
-                ' luxon_user_role.tenant_id as tenant_id FROM' + \
-                ' luxon_user_role LEFT JOIN luxon_role ON' + \
-                ' luxon_user_role.role_id = luxon_role.id' + \
-                ' LEFT JOIN luxon_tenant ON' + \
-                ' luxon_user_role.tenant_id = luxon_tenant.id' + \
-                ' OR luxon_user_role.tenant_id is NULL' + \
-                ' where luxon_user_role.user_id = %s'
+                ' infinitystone_user_role.id as assignment_id,' + \
+                ' infinitystone_user_role.role_id AS role_id,' + \
+                ' infinitystone_user_role.domain as domain,' + \
+                ' infinitystone_role.name as role,' + \
+                ' infinitystone_user_role.tenant_id as tenant_id FROM' + \
+                ' infinitystone_user_role LEFT JOIN infinitystone_role ON' + \
+                ' infinitystone_user_role.role_id = infinitystone_role.id' + \
+                ' LEFT JOIN infinitystone_tenant ON' + \
+                ' infinitystone_user_role.tenant_id = infinitystone_tenant.id' + \
+                ' OR infinitystone_user_role.tenant_id is NULL' + \
+                ' where infinitystone_user_role.user_id = %s'
         if domain is not None:
-            query += ' and luxon_user_role.domain = %s'
+            query += ' and infinitystone_user_role.domain = %s'
             values.append(domain)
         else:
-            query += ' and luxon_user_role.domain IS NULL'
+            query += ' and infinitystone_user_role.domain IS NULL'
 
         if tenant_id is not None:
-            query += ' and luxon_user_role.tenant_id = %s'
+            query += ' and infinitystone_user_role.tenant_id = %s'
             values.append(tenant_id)
         else:
-            query += ' and luxon_user_role.tenant_id IS NULL'
+            query += ' and infinitystone_user_role.tenant_id IS NULL'
 
         crsr = conn.execute(query, values)
 
@@ -183,7 +183,7 @@ def get_context_roles(user_id, domain=None, tenant_id=None):
 def authorize(tag, username=None, password=None, domain=None):
     with db() as conn:
         values = [tag, username, ]
-        sql = 'SELECT username, password FROM luxon_user'
+        sql = 'SELECT username, password FROM infinitystone_user'
         sql += ' WHERE'
         sql += ' tag = %s'
         sql += ' AND username = %s'

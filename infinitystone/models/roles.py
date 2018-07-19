@@ -47,7 +47,7 @@ ROLES = [
 
 
 @register.model()
-class luxon_role(SQLModel):
+class infinitystone_role(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     name = SQLModel.String(max_length=64, null=False)
     description = SQLModel.Text()

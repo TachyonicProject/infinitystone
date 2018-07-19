@@ -32,7 +32,7 @@ from luxon import router
 from luxon.utils.password import hash
 from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.models.users import luxon_user
+from infinitystone.models.users import infinitystone_user
 
 
 @register.resources()
@@ -50,26 +50,26 @@ class Users(object):
                    tag='users:admin')
 
     def user(self, req, resp, id):
-        return obj(req, luxon_user, sql_id=id, hide=('password',))
+        return obj(req, infinitystone_user, sql_id=id, hide=('password',))
 
     def users(self, req, resp):
-        return sql_list(req, 'luxon_user', ('id', 'username', 'name'))
+        return sql_list(req, 'infinitystone_user', ('id', 'username', 'name'))
 
     def create(self, req, resp):
-        user = obj(req, luxon_user, hide=('password',))
+        user = obj(req, infinitystone_user, hide=('password',))
         if req.json.get('password') is not None:
             user['password'] = hash(req.json['password'])
         user.commit()
         return user
 
     def update(self, req, resp, id):
-        user = obj(req, luxon_user, sql_id=id, hide=('password',))
+        user = obj(req, infinitystone_user, sql_id=id, hide=('password',))
         if req.json.get('password') is not None:
             user['password'] = hash(req.json['password'])
         user.commit()
         return user
 
     def delete(self, req, resp, id):
-        user = obj(req, luxon_user, sql_id=id, hide=('password',))
+        user = obj(req, infinitystone_user, sql_id=id, hide=('password',))
         user.commit()
         return user
