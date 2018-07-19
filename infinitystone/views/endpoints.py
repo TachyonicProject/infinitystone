@@ -31,7 +31,7 @@ from luxon import register
 from luxon import router
 from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.models.endpoints import luxon_endpoint
+from infinitystone.models.endpoints import infinitystone_endpoint
 
 
 @register.resources()
@@ -48,23 +48,23 @@ class Endpoints(object):
                    tag='admin')
 
     def endpoint(self, req, resp, id):
-        return obj(req, luxon_endpoint, sql_id=id)
+        return obj(req, infinitystone_endpoint, sql_id=id)
 
     def endpoints(self, req, resp):
-        return sql_list(req, 'luxon_endpoint', ('id', 'name', 'interface',
+        return sql_list(req, 'infinitystone_endpoint', ('id', 'name', 'interface',
                                                 'region', 'uri', ))
 
     def create(self, req, resp):
-        endpoint = obj(req, luxon_endpoint)
+        endpoint = obj(req, infinitystone_endpoint)
         endpoint.commit()
         return endpoint
 
     def update(self, req, resp, id):
-        endpoint = obj(req, luxon_endpoint, sql_id=id)
+        endpoint = obj(req, infinitystone_endpoint, sql_id=id)
         endpoint.commit()
         return endpoint
 
     def delete(self, req, resp, id):
-        endpoint = obj(req, luxon_endpoint, sql_id=id)
+        endpoint = obj(req, infinitystone_endpoint, sql_id=id)
         endpoint.commit()
         return endpoint

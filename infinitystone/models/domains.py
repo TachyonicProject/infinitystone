@@ -39,7 +39,7 @@ DOMAINS = [
 
 
 @register.model()
-class luxon_domain(SQLModel):
+class infinitystone_domain(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     name = SQLModel.Fqdn(null=False)
     description = SQLModel.Text()

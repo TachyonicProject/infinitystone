@@ -33,8 +33,8 @@ from luxon import register
 from luxon import SQLModel
 from luxon.utils.timezone import now
 
-from infinitystone.models.domains import luxon_domain
-from infinitystone.models.tenants import luxon_tenant
+from infinitystone.models.domains import infinitystone_domain
+from infinitystone.models.tenants import infinitystone_tenant
 
 USERS = [
     ('00000000-0000-0000-0000-000000000000', 'tachyonic',
@@ -46,7 +46,7 @@ USERS = [
 
 
 @register.model()
-class luxon_user(SQLModel):
+class infinitystone_user(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     tag = SQLModel.String(hidden=True, max_length=30, null=False)
     domain = SQLModel.Fqdn(internal=True)
@@ -62,8 +62,8 @@ class luxon_user(SQLModel):
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     unique_username = SQLModel.UniqueIndex(domain, username)
-    user_tenant_ref = SQLModel.ForeignKey(tenant_id, luxon_tenant.id)
-    user_domain_ref = SQLModel.ForeignKey(domain, luxon_domain.name)
+    user_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
+    user_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
     users = SQLModel.Index(domain, username)
     users_tenants = SQLModel.Index(domain, tenant_id)
     users_domain = SQLModel.Index(domain)

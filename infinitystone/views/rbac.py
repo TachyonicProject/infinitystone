@@ -56,7 +56,7 @@ def check_unique(conn, id, role, domain, tenant_id):
         domain (str): Name of the domain.
         tenant_id (str): UUID of the tenant.
     """
-    sql = "SELECT id FROM luxon_user_role WHERE user_id=? AND role_id=? AND "
+    sql = "SELECT id FROM infinitystone_user_role WHERE user_id=? AND role_id=? AND "
     vals = [id, role]
     query, addvals = build_where(domain=domain, tenant_id=tenant_id)
     sql += query
@@ -85,7 +85,7 @@ def check_context_auth(conn, user_id, domain, tenant_id):
     """
     req_user_id = g.current_request.credentials.user_id
     if req_user_id != '00000000-0000-0000-0000-000000000000':
-        cur = conn.execute("SELECT id FROM luxon_role WHERE name=?",
+        cur = conn.execute("SELECT id FROM infinitystone_role WHERE name=?",
                            ('Administrator',))
         admin_id = cur.fetchone()['id']
 
@@ -96,7 +96,7 @@ def check_context_auth(conn, user_id, domain, tenant_id):
         query += " OR role_id=?)"
         vals.append(admin_id)
 
-        sql = "SELECT id FROM luxon_user_role WHERE " + query
+        sql = "SELECT id FROM infinitystone_user_role WHERE " + query
         cur = conn.execute(sql, vals)
         if not cur.fetchone():
             raise AccessDeniedError(
@@ -118,7 +118,7 @@ def rbac_domains(req, resp):
     # purpose, we need to select ALL domains for the Root user.
     user_id = req.token.user_id
     if user_id == "00000000-0000-0000-0000-000000000000":
-        sql = "SELECT name FROM luxon_domain"
+        sql = "SELECT name FROM infinitystone_domain"
         with db() as conn:
             cur = conn.execute(sql)
             result = cur.fetchall()
@@ -145,10 +145,10 @@ def rbac_tenants(req, resp):
     """
     user_id = req.token.user_id
     if user_id == "00000000-0000-0000-0000-000000000000":
-        sql = "SELECT id as tenant_id,name FROM luxon_tenant"
+        sql = "SELECT id as tenant_id,name FROM infinitystone_tenant"
     else:
-        sql = "SELECT luxon_user_role.tenant_id,name FROM luxon_user_role" \
-          ",luxon_tenant WHERE luxon_user_role.tenant_id=luxon_tenant.id " \
+        sql = "SELECT infinitystone_user_role.tenant_id,name FROM infinitystone_user_role" \
+          ",infinitystone_tenant WHERE infinitystone_user_role.tenant_id=luxon_tenant.id " \
           "AND user_id=?"
     tenants = {}
     with db() as conn:
@@ -165,7 +165,7 @@ def rbac_roles(req, resp):
 
     Used when assigning a user's role.
     """
-    sql = "SELECT id,name FROM luxon_role"
+    sql = "SELECT id,name FROM infinitystone_role"
     roles = {}
     with db() as conn:
         cur = conn.execute(sql)
@@ -176,10 +176,10 @@ def rbac_roles(req, resp):
 
 @register.resource('GET', '/v1/rbac/user/{id}', tag='login')
 def user_roles(req, resp, id):
-    sql = "SELECT luxon_user_role.*,luxon_tenant.name as tenant_name," \
-          "luxon_role.name as role_name FROM luxon_user_role LEFT JOIN " \
-          "luxon_tenant ON luxon_user_role.tenant_id=luxon_tenant.id " \
-          "LEFT JOIN luxon_role ON luxon_user_role.role_id = luxon_role.id " \
+    sql = "SELECT infinitystone_user_role.*,infinitystone_tenant.name as tenant_name," \
+          "infinitystone_role.name as role_name FROM infinitystone_user_role LEFT JOIN " \
+          "infinitystone_tenant ON infinitystone_user_role.tenant_id=luxon_tenant.id " \
+          "LEFT JOIN infinitystone_role ON infinitystone_user_role.role_id = luxon_role.id " \
           "WHERE user_id=?"
     with db() as conn:
         cur = conn.execute(sql, id)
@@ -231,7 +231,7 @@ class AddUserRoles():
             # So need to manually check that.
             check_unique(conn, id, role, domain, tenant_id)
 
-            sql = "INSERT INTO luxon_user_role " \
+            sql = "INSERT INTO infinitystone_user_role " \
                   "(`id`,`role_id`,`tenant_id`,`user_id`," \
                   "`domain`,`creation_time`) " \
                   "VALUES (?,?,?,?,?,?)"
@@ -284,7 +284,7 @@ class RmUserRoles():
                      'tenant_id': tenant_id,
                      'domain': domain}
             query, vals = build_where(**where)
-            sql = "DELETE FROM luxon_user_role WHERE " + query
+            sql = "DELETE FROM infinitystone_user_role WHERE " + query
             cur = conn.execute(sql, vals)
             conn.commit()
             if not cur.rowcount:

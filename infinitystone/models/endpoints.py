@@ -35,7 +35,7 @@ from luxon.utils.timezone import now
 
 
 @register.model()
-class luxon_endpoint(SQLModel):
+class infinitystone_endpoint(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     name = SQLModel.Fqdn(max_length=64, null=False)
     interface = SQLModel.Enum('public', 'internal', 'admin', null=False)

@@ -31,7 +31,7 @@ from luxon import register
 from luxon import router
 from psychokinetic.utils.api import sql_list, obj
 
-from infinitystone.models.domains import luxon_domain
+from infinitystone.models.domains import infinitystone_domain
 
 
 @register.resources()
@@ -49,22 +49,22 @@ class Domains(object):
                    tag='domains:admin')
 
     def domain(self, req, resp, id):
-        return obj(req, luxon_domain, sql_id=id)
+        return obj(req, infinitystone_domain, sql_id=id)
 
     def domains(self, req, resp):
-        return sql_list(req, 'luxon_domain', ('id', 'name',))
+        return sql_list(req, 'infinitystone_domain', ('id', 'name',))
 
     def create(self, req, resp):
-        domain = obj(req, luxon_domain)
+        domain = obj(req, infinitystone_domain)
         domain.commit()
         return domain
 
     def update(self, req, resp, id):
-        domain = obj(req, luxon_domain, sql_id=id)
+        domain = obj(req, infinitystone_domain, sql_id=id)
         domain.commit()
         return domain
 
     def delete(self, req, resp, id):
-        domain = obj(req, luxon_domain, sql_id=id)
+        domain = obj(req, infinitystone_domain, sql_id=id)
         domain.commit()
         return domain
