@@ -180,10 +180,10 @@ def user_roles(req, resp, id):
     sql = "SELECT infinitystone_user_role.*,infinitystone_tenant.name as tenant_name," \
           "infinitystone_role.name as role_name FROM infinitystone_user_role LEFT JOIN " \
           "infinitystone_tenant" \
-          "ON infinitystone_user_role.tenant_id=infinitystone_tenant.id " \
-          "LEFT JOIN infinitystone_role" \
-          " ON infinitystone_user_role.role_id = infinitystone_role.id " \
-          "WHERE user_id=?"
+          " ON infinitystone_user_role.tenant_id=infinitystone_tenant.id" \
+          " LEFT JOIN infinitystone_role" \
+          " ON infinitystone_user_role.role_id = infinitystone_role.id" \
+          " WHERE user_id=?"
     with db() as conn:
         cur = conn.execute(sql, id)
         result = cur.fetchall()
