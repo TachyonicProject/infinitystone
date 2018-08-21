@@ -55,7 +55,7 @@ class infinitystone_user_role(SQLModel):
     tenant_id = SQLModel.String()
     user_id = SQLModel.Uuid()
     creation_time = SQLModel.DateTime(readonly=True, default=now)
-    unique_user_role = SQLModel.UniqueIndex(role_id, tenant_id, user_id)
+    unique_user_role = SQLModel.UniqueIndex(domain, role_id, tenant_id, user_id)
     user_role_id_ref = SQLModel.ForeignKey(role_id, infinitystone_role.id)
     user_role_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
     user_role_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)

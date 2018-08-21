@@ -38,9 +38,9 @@ from infinitystone.models.tenants import infinitystone_tenant
 class Tenants(object):
     def __init__(self):
         router.add('GET', '/v1/tenant/{id}', self.tenant,
-                   tag='tenants:view')
+                   tag='login')
         router.add('GET', '/v1/tenants', self.tenants,
-                   tag='tenants:view')
+                   tag='login')
         router.add('POST', '/v1/tenant', self.create,
                    tag='tenants:admin')
         router.add(['PUT', 'PATCH'], '/v1/tenant/{id}', self.update,

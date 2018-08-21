@@ -38,14 +38,14 @@ from infinitystone.models.endpoints import infinitystone_endpoint
 class Endpoints(object):
     def __init__(self):
         router.add('GET', '/v1/endpoint/{id}', self.endpoint,
-                   tag='login')
+                   tag='endpoints:view')
         router.add('GET', '/v1/endpoints', self.endpoints)
         router.add('POST', '/v1/endpoint', self.create,
-                   tag='admin')
+                   tag='endpoints:admin')
         router.add(['PUT', 'PATCH'], '/v1/endpoint/{id}', self.update,
-                   tag='admin')
+                   tag='endpoints:admin')
         router.add('DELETE', '/v1/endpoint/{id}', self.delete,
-                   tag='admin')
+                   tag='endpoints:admin')
 
     def endpoint(self, req, resp, id):
         return obj(req, infinitystone_endpoint, sql_id=id)
