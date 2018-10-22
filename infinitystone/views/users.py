@@ -42,6 +42,8 @@ class Users(object):
                    tag='users:view')
         router.add('GET', '/v1/users', self.users,
                    tag='users:view')
+        router.add('GET', '/v1/users/{tag}', self.users,
+                   tag='users:view')
         router.add('POST', '/v1/user', self.create,
                    tag='users:admin')
         router.add(['PUT', 'PATCH'], '/v1/user/{id}', self.update,
@@ -52,8 +54,10 @@ class Users(object):
     def user(self, req, resp, id):
         return obj(req, infinitystone_user, sql_id=id, hide=('password',))
 
-    def users(self, req, resp):
-        return sql_list(req, 'infinitystone_user', ('id', 'username', 'name'))
+    def users(self, req, resp, tag='tachyonic'):
+        return sql_list(req, 'infinitystone_user',
+                        ('id', 'username', 'name',),
+                        tag=tag)
 
     def create(self, req, resp):
         user = obj(req, infinitystone_user, hide=('password',))
