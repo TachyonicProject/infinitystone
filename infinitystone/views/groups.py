@@ -30,45 +30,41 @@
 from luxon import register
 from luxon import router
 from luxon.helpers.api import sql_list, obj
-from luxon import db
 
-from infinitystone.utils.auth import tenants
-from infinitystone.models.tenants import infinitystone_tenant
+from infinitystone.models.groups import infinitystone_group
 
 
 @register.resources()
-class Tenants(object):
+class Groups(object):
     def __init__(self):
-        router.add('GET', '/v1/tenant/{id}', self.tenant,
-                   tag='login')
-        router.add('GET', '/v1/tenants', self.tenants,
-                   tag='login')
-        router.add('GET', '/v1/tenants/{domain}', self.tenants,
-                   tag='login')
-        router.add('POST', '/v1/tenant', self.create,
-                   tag='tenants:admin')
-        router.add(['PUT', 'PATCH'], '/v1/tenant/{id}', self.update,
-                   tag='tenants:admin')
-        router.add('DELETE', '/v1/tenant/{id}', self.delete,
-                   tag='tenants:admin')
+        router.add('GET', '/v1/group/{id}', self.group,
+                   tag='internal')
+        router.add('GET', '/v1/groups', self.groups,
+                   tag='internal')
+        router.add('POST', '/v1/group', self.create,
+                   tag='internal')
+        router.add(['PUT', 'PATCH'], '/v1/group/{id}', self.update,
+                   tag='internal')
+        router.add('DELETE', '/v1/group/{id}', self.delete,
+                   tag='internal')
 
-    def tenant(self, req, resp, id):
-        return obj(req, infinitystone_tenant, sql_id=id)
+    def group(self, req, resp, id):
+        return obj(req, infinitystone_group, sql_id=id)
 
-    def tenants(self, req, resp, domain=None):
-        return tenants(req, domain)
+    def groups(self, req, resp):
+        return sql_list(req, 'infinitystone_group', ('id', 'name', ))
 
     def create(self, req, resp):
-        tenant = obj(req, infinitystone_tenant)
-        tenant.commit()
-        return tenant
+        group = obj(req, infinitystone_group)
+        group.commit()
+        return group
 
     def update(self, req, resp, id):
-        tenant = obj(req, infinitystone_tenant, sql_id=id)
-        tenant.commit()
-        return tenant
+        group = obj(req, infinitystone_group, sql_id=id)
+        group.commit()
+        return group
 
     def delete(self, req, resp, id):
-        tenant = obj(req, infinitystone_tenant, sql_id=id)
-        tenant.commit()
-        return tenant
+        group = obj(req, infinitystone_group, sql_id=id)
+        group.commit()
+        return group

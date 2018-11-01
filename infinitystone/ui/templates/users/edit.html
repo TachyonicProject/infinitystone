@@ -1,0 +1,60 @@
+{% extends "photonic/view.html" %}
+
+{% block content %}
+    <form id="form" autocomplete="off" method='post' enctype="multipart/form-data">
+        {{ form }}
+    </form>
+    <table class="display" data-url="/v1/user_roles/{{id}}" width="100%">
+        <thead>
+            <tr>
+                <th id='domain'>Domain</th>
+                <th id='tenant'>Tenant</th>
+                <th id='role'>Role</th>
+                <th data-confirm="Delete user role?" data-href="/accounts/users/rm_role/{{id}}" data-close width="2rem">
+                    <span data-feather="minus-square"></span>
+                </th>
+            </tr>
+        </thead>
+    </table>
+     <form id='role_form' autocomplete="off" data-msg="Succesfully added role" data-datatable action="{{APP}}/accounts/users/set_role/{{id}}" enctype="multipart/form-data" class="row">
+         <div class="col-sm-3">
+             <select id="role_add_domain" name="domain" data-id="name" data-url="/v1/domains" data-allow-clear data-placeholder="Select Domain">
+                <option value=""></option>
+            </select>
+         </div>
+         <div class="col-sm-3">
+             <select id="role_add_tenant_id" name="tenant_id" data-id="id" data-url="/v1/tenants/None" data-allow-clear data-placeholder="Select Tenant">
+                <option value=""></option>
+            </select>
+         </div>
+         <div class="col-sm-3">
+             <select id="role_add" name="role" data-id="role" data-text='role' data-url="/v1/access" data-allow-clear data-placeholder="Select Role">
+                <option value=""></option>
+            </select>
+         </div>
+         <div class="col-sm-3">
+              <input id='role_add_button' class="btn btn-danger" type="submit" value="Add Role" >
+         </div>
+    </form>
+    <script>
+        $('#role_add_domain').on('select2:unselecting', function (e) {
+            reset_tenant(e);
+        });
+        $('#role_add_domain').on('select2:select', function (e) {
+            reset_tenant(e)
+        });
+        $('#role_add_tenant_id').on('select2:unselecting', function (e) {
+            reset_role(e)
+        });
+        $('#role_add_tenant_id').on('select2:select', function (e) {
+            reset_role(e)
+        });
+    </script>
+
+{% endblock %}
+
+{% block buttons %}
+    <a href="{{ APP }}/accounts/users/{{id}}" class="btn btn-default">Cancel</a>
+    <a data-confirm="Delete user?" data-closeAll href="{{ APP }}/accounts/users/delete/{{id}}" class="btn btn-danger">Delete</a>
+    <a href="{{ APP }}/accounts/users/edit/{{id}}" data-form="form" class="btn btn-primary">Update</a>
+{% endblock %}

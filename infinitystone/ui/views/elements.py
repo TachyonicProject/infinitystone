@@ -27,48 +27,19 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import register
+from luxon import g
 from luxon import router
-from luxon.helpers.api import sql_list, obj
-from luxon import db
+from luxon import register
+from luxon import render_template
+from luxon.utils.bootstrap4 import form
+from luxon.utils.html5 import select
 
-from infinitystone.utils.auth import tenants
-from infinitystone.models.tenants import infinitystone_tenant
+from infinitystone.ui.models.users import infinitystone_user
+from infinitystone.ui.models.user_roles import infinitystone_user_role
+
+g.nav_menu.add('/Infrastructure/Elements',
+               href='/infrastructure/elements',
+               tag='services',
+               feather='server')
 
 
-@register.resources()
-class Tenants(object):
-    def __init__(self):
-        router.add('GET', '/v1/tenant/{id}', self.tenant,
-                   tag='login')
-        router.add('GET', '/v1/tenants', self.tenants,
-                   tag='login')
-        router.add('GET', '/v1/tenants/{domain}', self.tenants,
-                   tag='login')
-        router.add('POST', '/v1/tenant', self.create,
-                   tag='tenants:admin')
-        router.add(['PUT', 'PATCH'], '/v1/tenant/{id}', self.update,
-                   tag='tenants:admin')
-        router.add('DELETE', '/v1/tenant/{id}', self.delete,
-                   tag='tenants:admin')
-
-    def tenant(self, req, resp, id):
-        return obj(req, infinitystone_tenant, sql_id=id)
-
-    def tenants(self, req, resp, domain=None):
-        return tenants(req, domain)
-
-    def create(self, req, resp):
-        tenant = obj(req, infinitystone_tenant)
-        tenant.commit()
-        return tenant
-
-    def update(self, req, resp, id):
-        tenant = obj(req, infinitystone_tenant, sql_id=id)
-        tenant.commit()
-        return tenant
-
-    def delete(self, req, resp, id):
-        tenant = obj(req, infinitystone_tenant, sql_id=id)
-        tenant.commit()
-        return tenant
