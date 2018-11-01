@@ -29,9 +29,13 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import register
 from luxon import router
-from psychokinetic.utils.api import sql_list, obj
+from luxon import GetLogger
+from luxon.helpers.api import sql_list, obj
+
+log = GetLogger(__name__)
 
 from infinitystone.models.domains import infinitystone_domain
+from infinitystone.utils.auth import domains
 
 
 @register.resources()
@@ -52,7 +56,7 @@ class Domains(object):
         return obj(req, infinitystone_domain, sql_id=id)
 
     def domains(self, req, resp):
-        return sql_list(req, 'infinitystone_domain', ('id', 'name',))
+        return domains(req)
 
     def create(self, req, resp):
         domain = obj(req, infinitystone_domain)

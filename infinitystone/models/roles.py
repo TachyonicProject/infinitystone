@@ -43,6 +43,8 @@ ROLES = [
     (str(uuid4()), 'Customer', None, now()),
     (str(uuid4()), 'Wholesale', None, now()),
     (str(uuid4()), 'Minion', None, now()),
+    (str(uuid4()), 'Virtualization', None, now()),
+    (str(uuid4()), 'Endpoint', None, now()),
 ]
 
 
