@@ -37,13 +37,14 @@ from luxon.utils.timezone import now
 @register.model()
 class infinitystone_endpoint(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
-    name = SQLModel.Fqdn(max_length=64, null=False)
+    name = SQLModel.Word(lower=True, max_length=64, null=False)
     interface = SQLModel.Enum('public', 'internal', 'admin', null=False)
     region = SQLModel.String(max_length=64, null=False)
     uri = SQLModel.Uri(max_length=64, null=False)
     creation_time = SQLModel.DateTime(default=now, internal=True)
     primary_key = id
-    unique_endpoint = SQLModel.UniqueIndex(interface, uri)
+    unique_endpoint_int = SQLModel.UniqueIndex(name, interface, region)
+    unique_endpoint_uri = SQLModel.UniqueIndex(interface, uri, region)
     endpoint_name = SQLModel.Index(name)
     endpoint_find = SQLModel.Index(name, interface)
     endpoint_exact = SQLModel.Index(name, interface, region)

@@ -1,0 +1,21 @@
+{% extends "photonic/view.html" %}
+
+{% block content %}
+    <form method='post' enctype="multipart/form-data" disabled>
+        {{ form }}
+    </form>
+    <table class="display" data-url="/v1/user_roles/{{id}}" width="100%">
+        <thead>
+            <tr>
+                <th id='domain'>Domain</th>
+                <th id='tenant'>Tenant</th>
+                <th id='role'>Role</th>
+            </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block buttons %}
+    <a href="#" onclick="close_window();" class="btn btn-default">Back</a>
+    <a href="{{ APP }}/accounts/users/edit/{{id}}" class="btn btn-primary">Edit</a>
+{% endblock %}

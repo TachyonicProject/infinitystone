@@ -4,3 +4,7 @@ from infinitystone.models.roles import infinitystone_role
 from infinitystone.models.tenants import infinitystone_tenant
 from infinitystone.models.user_roles import infinitystone_user_role
 from infinitystone.models.users import infinitystone_user
+from infinitystone.models.groups import infinitystone_group
+from infinitystone.models.user_groups import infinitystone_user_group
+from infinitystone.models.user_attrs import infinitystone_user_attr
+from infinitystone.models.group_attrs import infinitystone_group_attr

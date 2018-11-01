@@ -1,0 +1,17 @@
+{% extends "photonic/view.html" %}
+{% block content %}
+<table class="display" data-endpoint='identity' data-url="/v1/tenants" width="100%">
+    <thead>
+        <tr>
+            <th id='name'>Name</th>
+            <th id='crm_id'>CRM ID</th>
+            <th data-modal data-href="/accounts/tenants" width="2rem">
+                <span data-feather="edit"></span>
+            </th>
+        </tr>
+    </thead>
+</table>
+{% endblock %}
+{% block buttons %}
+<a class="btn btn-primary" data-modal href="{{APP}}/accounts/tenants/add">Add Tenant</a>
+{% endblock %}

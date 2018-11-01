@@ -27,48 +27,29 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
+from uuid import uuid4
+
 from luxon import register
-from luxon import router
-from luxon.helpers.api import sql_list, obj
-from luxon import db
+from luxon import SQLModel
+from luxon.utils.timezone import now
 
-from infinitystone.utils.auth import tenants
+from infinitystone.models.domains import infinitystone_domain
 from infinitystone.models.tenants import infinitystone_tenant
+from infinitystone.models.groups import infinitystone_group
 
-
-@register.resources()
-class Tenants(object):
-    def __init__(self):
-        router.add('GET', '/v1/tenant/{id}', self.tenant,
-                   tag='login')
-        router.add('GET', '/v1/tenants', self.tenants,
-                   tag='login')
-        router.add('GET', '/v1/tenants/{domain}', self.tenants,
-                   tag='login')
-        router.add('POST', '/v1/tenant', self.create,
-                   tag='tenants:admin')
-        router.add(['PUT', 'PATCH'], '/v1/tenant/{id}', self.update,
-                   tag='tenants:admin')
-        router.add('DELETE', '/v1/tenant/{id}', self.delete,
-                   tag='tenants:admin')
-
-    def tenant(self, req, resp, id):
-        return obj(req, infinitystone_tenant, sql_id=id)
-
-    def tenants(self, req, resp, domain=None):
-        return tenants(req, domain)
-
-    def create(self, req, resp):
-        tenant = obj(req, infinitystone_tenant)
-        tenant.commit()
-        return tenant
-
-    def update(self, req, resp, id):
-        tenant = obj(req, infinitystone_tenant, sql_id=id)
-        tenant.commit()
-        return tenant
-
-    def delete(self, req, resp, id):
-        tenant = obj(req, infinitystone_tenant, sql_id=id)
-        tenant.commit()
-        return tenant
+@register.model()
+class infinitystone_group_attr(SQLModel):
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    domain = SQLModel.Fqdn(internal=True)
+    tenant_id = SQLModel.String()
+    group_id = SQLModel.Uuid()
+    attribute = SQLModel.String()
+    value = SQLModel.String()
+    creation_time = SQLModel.DateTime(readonly=True, default=now)
+    group_attr_ref = SQLModel.ForeignKey(group_id, infinitystone_group.id)
+    group_attr_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
+    group_attr_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
+    group_attrs = SQLModel.Index(group_id)
+    group_attrs_domain = SQLModel.Index(domain, group_id)
+    group_attrs_tenant_domain = SQLModel.Index(domain, tenant_id, group_id)
+    primary_key = id

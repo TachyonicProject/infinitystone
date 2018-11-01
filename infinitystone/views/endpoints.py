@@ -29,7 +29,7 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import register
 from luxon import router
-from psychokinetic.utils.api import sql_list, obj
+from luxon.helpers.api import sql_list, obj
 
 from infinitystone.models.endpoints import infinitystone_endpoint
 

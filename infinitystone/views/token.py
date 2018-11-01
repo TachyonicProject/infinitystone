@@ -33,6 +33,7 @@ from luxon import router
 from luxon.utils.imports import get_class
 
 from infinitystone.utils.auth import (localize,
+                                      get_tenant_domain,
                                       get_user_id,
                                       get_context_roles)
 
@@ -89,10 +90,11 @@ class Token(object):
         # Get User_id
         user_id = get_user_id(self.realm, username, domain)
         # Get Roles
-        roles = get_context_roles(user_id, domain)
+        global_roles = get_context_roles(user_id, None)
+        domain_roles = get_context_roles(user_id, domain)
         # Set roles in token
         req.credentials.new(user_id, username=username, domain=domain)
-        req.credentials.roles = roles
+        req.credentials.roles = domain_roles + global_roles
 
         return req.credentials
 
@@ -101,15 +103,21 @@ class Token(object):
         domain = request_object.get('domain')
         tenant_id = request_object.get('tenant_id')
         user_id = req.credentials.user_id
-        if domain is not None:
-            req.credentials.domain = domain
-            req.credentials.roles = get_context_roles(user_id, domain)
         if tenant_id is not None:
             req.credentials.tenant_id = tenant_id
             default_role = g.app.config.get(
-                'auth', 'default_tenant_role',
+                'identity', 'default_tenant_role',
                 fallback='Customer')
             req.credentials.roles = get_context_roles(user_id, domain,
                                                       tenant_id)
             req.credentials.roles = default_role
+            req.credentials.domain = get_tenant_domain(tenant_id)
+            req.credentials.roles = get_context_roles(user_id,
+                                                      req.credentials.domain)
+
+        elif domain is not None:
+            req.credentials.domain = domain
+            req.credentials.roles = get_context_roles(user_id, domain)
+            
+            
         return req.credentials

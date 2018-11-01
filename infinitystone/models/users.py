@@ -48,7 +48,7 @@ USERS = [
 @register.model()
 class infinitystone_user(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
-    tag = SQLModel.String(hidden=True, max_length=30, null=False)
+    tag = SQLModel.String(readonly=True, internal=True, hidden=True, max_length=30, null=False)
     domain = SQLModel.Fqdn(internal=True)
     tenant_id = SQLModel.Uuid(internal=True)
     username = SQLModel.Username(max_length=100, null=False)
@@ -61,11 +61,13 @@ class infinitystone_user(SQLModel):
     last_login = SQLModel.DateTime(readonly=True)
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)
-    unique_username = SQLModel.UniqueIndex(domain, username)
+    unique_username = SQLModel.UniqueIndex(username, domain, tag)
     user_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
     user_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
     users = SQLModel.Index(domain, username)
     users_tenants = SQLModel.Index(domain, tenant_id)
     users_domain = SQLModel.Index(domain)
+    user_search = SQLModel.Index(username)
+    name_search = SQLModel.Index(name)
     primary_key = id
     db_default_rows = USERS

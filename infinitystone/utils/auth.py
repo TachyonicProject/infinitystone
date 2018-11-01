@@ -32,6 +32,8 @@ from luxon import db
 from luxon.utils.password import valid as is_valid_password
 from luxon.utils.cast import to_list
 from luxon.exceptions import AccessDeniedError
+from infinitystone.models.users import infinitystone_user
+from luxon.helpers.api import sql_list, obj
 
 
 def localize(tag, username, domain):
@@ -85,6 +87,66 @@ def get_user_id(tag, username, domain=None):
         else:
             raise ValueError('User not found')
 
+def get_all_roles():
+    with db() as conn:
+        roles = []
+        sql = 'SELECT name FROM infinitystone_role'
+        result = conn.execute(sql).fetchall()
+        for role in result:
+            roles.append(role['name'])
+        return roles
+
+
+def get_role_id(role):
+    with db() as conn:
+        sql = 'SELECT id FROM infinitystone_role'
+        sql += ' WHERE'
+        sql += ' name = %s'
+        result = conn.execute(sql,
+                              role).fetchone()
+        if result:
+            return result['id']
+        else:
+            raise ValueError('Role not found')
+
+def get_tenant_domain(tenant_id):
+    with db() as conn:
+        sql = 'SELECT domain FROM infinitystone_tenant'
+        sql += ' WHERE'
+        sql += ' id = %s'
+        result = conn.execute(sql,
+                              tenant_id).fetchone()
+        if result and result['domain']:
+            return result['domain']
+
+def get_sub_tenants(tenant_id):
+    tenants = []
+
+    tenant = tenant_id
+
+    while True:
+        tenant = tenant_or_sub(tenant)
+        if tenant in tenants:
+            break
+        tenants.append(tenant)
+
+    if tenant_id not in tenants:
+        tenants.append(tenant_id)
+
+    return tenants
+
+
+def tenant_or_sub(tenant_id):
+    with db() as conn:
+        sql = 'SELECT tenant_id FROM infinitystone_tenant'
+        sql += ' WHERE'
+        sql += ' id = %s'
+        result = conn.execute(sql,
+                              tenant_id).fetchone()
+        if result and result['tenant_id']:
+            return result['tenant_id']
+        elif result and not result['tenant_id']:
+            return tenant_id
 
 def get_domains():
     with db() as conn:
@@ -92,19 +154,44 @@ def get_domains():
         return crsr.fetchall()
 
 
-def get_user_roles(user_id):
+def get_user_groups(user_id):
     if user_id is None:
         # NOTE(cfrademan): SHORT-CIRCUIT - google is your friend.
         return []
 
-    domains = get_domains()
-    roles = []
+    with db() as conn:
+        query = 'SELECT' + \
+                ' infinitystone_group.name AS name' + \
+                ' FROM' + \
+                ' infinitystone_user_group LEFT JOIN infinitystone_group ON' + \
+                ' infinitystone_user_group.group_id = infinitystone_group.id' + \
+                ' WHERE infinitystone_user_group.user_id = %s'
+
+        crsr = conn.execute(query, user_id)
+        groups = to_list(crsr.fetchall())
+
+    return groups
+
+
+def get_user_attrs(user_id):
+    pass
+
+
+def get_group_attrs(user_id):
+    pass
+
+
+def get_user_roles(user_id):
+    if user_id is None:
+        # NOTE(cfrademan): SHORT-CIRCUIT - google is your friend.
+        return []
 
     with db() as conn:
         query = 'SELECT' + \
                 ' infinitystone_user_role.id AS assignment_id,' + \
                 ' infinitystone_role.name AS role,' + \
                 ' infinitystone_user_role.role_id AS role_id,' + \
+                ' infinitystone_user_role.id AS id,' + \
                 ' infinitystone_user_role.domain AS domain,' + \
                 ' infinitystone_user_role.tenant_id AS tenant_id,' + \
                 ' infinitystone_tenant.name AS tenant FROM' + \
@@ -116,12 +203,7 @@ def get_user_roles(user_id):
 
         crsr = conn.execute(query, user_id)
         roles = to_list(crsr.fetchall())
-        for role in roles:
-            if role['domain'] is None and role['tenant_id'] is None:
-                for domain in domains:
-                    role['domain'] = domain['name']
-                    roles.append(role)
-    return roles
+        return roles
 
 
 def user_domains(user_id):
@@ -201,3 +283,68 @@ def authorize(tag, username=None, password=None, domain=None):
                 return True
 
         raise AccessDeniedError('Invalid credentials provided')
+
+def tenants(req, domain=None, tenant_id=None):
+        table = (" infinitystone_tenant" +
+                 " LEFT JOIN" +
+                 " infinitystone_user_role ON" +
+                 " (infinitystone_user_role.tenant_id =" +
+                 " infinitystone_tenant.id and" +
+                 " infinitystone_user_role.domain =" +
+                 " infinitystone_tenant.domain)" +
+
+                 " or (infinitystone_user_role.tenant_id =" +
+                 " infinitystone_tenant.tenant_id and" +
+                 " infinitystone_user_role.domain =" +
+                 " infinitystone_tenant.domain)" +
+
+                 " or (infinitystone_user_role.tenant_id" +
+                 " is null and infinitystone_user_role.domain =" +
+                 " infinitystone_tenant.domain)" +
+                 " or (infinitystone_user_role.tenant_id" +
+                 " is null and" +
+                 " infinitystone_user_role.domain is null)" +
+                 " or (infinitystone_user_role.domain is null and" +
+                 " infinitystone_user_role.tenant_id =" +
+                 " infinitystone_tenant.id)")
+
+        if not domain:
+            # FOR WEB UI Role Assignments....
+            # We need to get global only tenants in the domain..
+            if tenant_id is None and req.credentials.tenant_id:
+                return sql_list(req, 'infinitystone_tenant', ('id', 'name', 'crm_id',))
+        where={"infinitystone_user_role.user_id": req.credentials.user_id}
+        if tenant_id is not None:
+            where["infinitystone_user_role.tenant_id"] = tenant_id
+
+        if domain:
+            # FOR WEB UI Role Assignments....
+            # We need to get global only tenants..
+            if domain == 'None':
+                domain = None
+            where['infinitystone_tenant.domain'] = domain
+        elif req.credentials.domain:
+            where['infinitystone_tenant.domain'] = req.credentials.domain
+
+        return sql_list(req, table, (('infinitystone_tenant.id', 'id',),
+                                     ('infinitystone_tenant.name', 'name',),
+                                     ('infinitystone_tenant.crm_id', 'crm_id',),
+                                     ('infinitystone_tenant.domain', 'domain',)),
+                        group_by='infinitystone_tenant.id', where=where)                      
+
+
+def domains(req):
+    where={"infinitystone_user_role.user_id": req.credentials.user_id}
+    table = (" infinitystone_domain" +
+	     " LEFT JOIN" +
+	     " infinitystone_user_role ON" +
+	     " (infinitystone_user_role.domain =" +
+	     " infinitystone_domain.name)" +
+	     " or (infinitystone_user_role.domain" +
+	     " is null and infinitystone_user_role.tenant_id" +
+	     " is null)")
+
+    return sql_list(req, table, (('infinitystone_domain.id', 'id',),
+				 ('infinitystone_domain.name', 'name',),),
+		    group_by='infinitystone_domain.name',
+		    where=where)
