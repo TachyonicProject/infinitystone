@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Rademan.
+# Copyright (c) 2018 Christiaan Rademan, Dave Kruger.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import os
 from luxon import g
 from luxon.utils.singleton import Singleton
 from luxon.utils.crypto import Crypto as CryptoLuxon
+from luxon.exceptions import NotFoundError
 
 class Crypto(CryptoLuxon, metaclass=Singleton):
     """Helper wrapper for Crypto Luxon utility.
@@ -42,10 +43,9 @@ class Crypto(CryptoLuxon, metaclass=Singleton):
         super().__init__()
         key_loc = g.app.path.rstrip('/') + '/credentials.key'
         if not os.path.isfile(key_loc):
-            key = self.generate_key()
-            iv = self.generate_iv()
-            with open(key_loc,'wb') as key_file:
-                key_file.write(key+iv)
+            message = "No 'credentials.key' found in %s. Generate with " \
+                      "'luxon -k %s'" % (g.app.path,g.app.path,)
+            raise NotFoundError(message)
         with open(key_loc, 'rb') as key_file:
             key_str = key_file.read()
             key = key_str[0:32]
