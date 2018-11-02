@@ -33,21 +33,13 @@ from luxon import Model
 from luxon.utils.timezone import now
 
 
-class infinitystone_user(Model):
+class infinitystone_element(Model):
     id = Model.Uuid(default=uuid4, internal=True)
-    tag = Model.String(hidden=True, max_length=30, null=False)
     domain = Model.Fqdn(internal=True)
     tenant_id = Model.Uuid(internal=True)
-    username = Model.Username(placeholder="john", max_length=100, null=False)
-    password = Model.String(max_length=100, null=True, ignore_null=True,
-                            password=True)
-    confirm_password = Model.Confirm(password)
-    email = Model.Email(placeholder="john.doe@acmecorp.org", max_length=255)
-    name = Model.String(placeholder="John Doe", max_length=100)
-    phone_mobile = Model.Phone(placeholder="+1-202-555-0103")
-    phone_office = Model.Phone(placeholder="+1-202-555-0105")
-    designation = Model.Enum('', 'Mr', 'Mrs', 'Ms', 'Dr', 'Prof')
-    last_login = Model.DateTime(readonly=True)
+    parent_id = Model.Uuid()
+    name = Model.Text(null=False)
     enabled = Model.Boolean(default=True)
+    encrypt_metadata = Model.Boolean(default=True)
     creation_time = Model.DateTime(default=now, readonly=True)
     primary_key = id
