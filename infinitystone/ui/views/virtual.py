@@ -33,83 +33,104 @@ from luxon import register
 from luxon import render_template
 from luxon.utils.bootstrap4 import form
 
-from infinitystone.ui.models.tenants import infinitystone_tenant
+from infinitystone.ui.models.virtual import infinitystone_virtual
 
-
-g.nav_menu.add('/Accounts/Tenants',
-               href='/accounts/tenants',
-               tag='users:admin',
-               feather='paperclip')
+g.nav_menu.add('/Infrastructure/Authentication/Virtual',
+               href='/infrastructure/authentication/virtual',
+               tag='infrastructure:admin',
+               feather='at-sign')
 
 
 @register.resources()
-class Tenants():
+class Virtual():
     def __init__(self):
         router.add('GET',
-                   '/accounts/tenants',
+                   '/infrastructure/authentication/virtual',
                    self.list,
-                   tag='tenants:view')
+                   tag='infrastructure:admin')
 
         router.add('GET',
-                   '/accounts/tenants/{id}',
+                   '/infrastructure/authentication/virtual/{id}',
                    self.view,
-                   tag='tenants:view')
+                   tag='infrastructure:admin')
 
         router.add('GET',
-                   '/accounts/tenants/delete/{id}',
+                   '/infrastructure/authentication/virtual/delete/{id}',
                    self.delete,
-                   tag='tenants:admin')
+                   tag='infrastructure:admin')
 
         router.add(('GET', 'POST',),
-                   '/accounts/tenants/add',
+                   '/infrastructure/authentication/virtual/add',
                    self.add,
-                   tag='tenants:admin')
+                   tag='infrastructure:admin')
 
         router.add(('GET', 'POST',),
-                   '/accounts/tenants/edit/{id}',
+                   '/infrastructure/authentication/virtual/edit/{id}',
                    self.edit,
-                   tag='tenants:admin')
+                   tag='infrastructure:admin')
+
+        router.add('POST',
+                   '/infrastructure/authentication/virtual/add_nas/{id}',
+                   self.add_nas,
+                   tag='infrastructure:admin')
+
+        router.add('GET',
+                   '/infrastructure/authentication/virtual/rm_nas/{id}',
+                   self.rm_nas,
+                   tag='infrastructure:admin')
 
     def list(self, req, resp):
-        return render_template('infinitystone.ui/tenants/list.html',
-                               view='Tenants')
+        return render_template('infinitystone.ui/virtual/list.html',
+                               view='Virtual Authentication Sevices')
 
     def delete(self, req, resp, id):
-         tenant = req.context.api.execute('DELETE', '/v1/tenant/%s' % id,
-                                          endpoint='identity')
+        req.context.api.execute('DELETE', '/v1/virtual/%s' % id,
+                                endpoint='identity')
 
     def view(self, req, resp, id):
-        tenant = req.context.api.execute('GET', '/v1/tenant/%s' % id,
-                                         endpoint='identity')
-        html_form = form(infinitystone_tenant, tenant.json, readonly=True)
-        return render_template('infinitystone.ui/tenants/view.html',
-                               view='View Tenant',
+        vr = req.context.api.execute('GET', '/v1/virtual/%s' % id,
+                                     endpoint='identity')
+        html_form = form(infinitystone_virtual, vr.json, readonly=True)
+        return render_template('infinitystone.ui/virtual/view.html',
+                               view='View Virtual Authentication Service',
                                form=html_form,
                                id=id)
 
     def edit(self, req, resp, id):
         if req.method == 'POST':
-            req.context.api.execute('PUT', '/v1/tenant/%s' % id,
+            req.context.api.execute('PUT', '/v1/virtual/%s' % id,
                                     data=req.form_dict,
                                     endpoint='identity')
             return self.view(req, resp, id)
         else:
-            tenant = req.context.api.execute('GET', '/v1/tenant/%s' % id,
+            domain = req.context.api.execute('GET', '/v1/virtual/%s' % id,
                                              endpoint='identity')
-            html_form = form(infinitystone_tenant, tenant.json)
-            return render_template('infinitystone.ui/tenants/edit.html',
-                                   view='Edit Tenant',
+            html_form = form(infinitystone_virtual, domain.json)
+            return render_template('infinitystone.ui/virtual/edit.html',
+                                   view='Edit Virtual Authentication Service',
                                    form=html_form,
                                    id=id)
 
     def add(self, req, resp):
         if req.method == 'POST':
-            response = req.context.api.execute('POST', '/v1/tenant',
+            response = req.context.api.execute('POST', '/v1/virtual',
                                                data=req.form_dict,
                                                endpoint='identity')
             return self.view(req, resp, response.json['id'])
         else:
-            html_form = form(infinitystone_tenant)
-            return render_template('infinitystone.ui/tenants/add.html',
-                                   view='Add Tenant',
+            html_form = form(infinitystone_virtual)
+            return render_template('infinitystone.ui/virtual/add.html',
+                                   view='Add Virtual Authentication Service',
                                    form=html_form)
+
+    def add_nas(self, req, resp, id):
+        data = req.form_dict
+
+        uri = '/v1/virtual/%s/nas' % id
+
+        response = req.context.api.execute('POST', uri, data=data,
+                                           endpoint='identity')
+
+    def rm_nas(self, req, resp, id):
+        uri = '/v1/virtual/%s/nas' % id
+        response = req.context.api.execute('DELETE', uri, endpoint='identity')  

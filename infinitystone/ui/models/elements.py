@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018 Dave Kruger.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,36 +29,17 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import register
-from luxon import SQLModel
+from luxon import Model
 from luxon.utils.timezone import now
 
-from infinitystone.models.domains import infinitystone_domain
 
-
-@register.model()
-class infinitystone_tenant(SQLModel):
-    id = SQLModel.Uuid(default=uuid4, internal=True)
-    domain = SQLModel.Fqdn(internal=True)
-    tenant_id = SQLModel.Uuid(internal=True, readonly=True)
-    crm_id = SQLModel.String(max_length=100, internal=True, readonly=True)
-    name = SQLModel.String(max_length=100, null=False)
-    enabled = SQLModel.Boolean(default=True)
-    creation_time = SQLModel.DateTime(default=now, readonly=True)
-    unique_tenant = SQLModel.UniqueIndex(domain, name, crm_id)
-    tenants = SQLModel.Index(id, domain)
-    tenants_index_crm = SQLModel.Index(crm_id)
-    tenants_search_name = SQLModel.Index(name, crm_id)
-    tenants_search_domain = SQLModel.Index(domain, name)
-    tenants_search_domain_tenant = SQLModel.Index(tenant_id, domain, name)
-    tenants_per_domain = SQLModel.Index(domain)
-    tenants_per_tenant = SQLModel.Index(tenant_id)
-    tenants_per_domain_tenant = SQLModel.Index(domain, tenant_id)
-    tenants_per_domain_tenant_tenant = SQLModel.Index(id, domain, tenant_id)
+class infinitystone_element(Model):
+    id = Model.Uuid(default=uuid4, internal=True)
+    domain = Model.Fqdn(internal=True)
+    tenant_id = Model.Uuid(internal=True)
+    parent_id = Model.Uuid(hidden=True)
+    name = Model.Text(null=False)
+    enabled = Model.Boolean(default=True)
+    encrypt_metadata = Model.Boolean(default=True)
+    creation_time = Model.DateTime(default=now, readonly=True)
     primary_key = id
-    tenant_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name,
-                                            on_delete='RESTRICT',
-                                            on_update='RESTRICT')
-    tenant_parent_ref = SQLModel.ForeignKey(tenant_id, id,
-                                            on_delete='RESTRICT',
-                                            on_update='RESTRICT')

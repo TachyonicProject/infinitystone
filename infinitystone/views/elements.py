@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018 Christiaan Frans Rademan, David Kruger.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,285 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
+from uuid import uuid4
+
 from luxon import register
 from luxon import router
-from luxon.helpers.api import sql_list, obj
+from luxon import db
+from luxon.utils import js
+from luxon.utils.pkg import EntryPoints
+from luxon.exceptions import NotFoundError, SQLOperationalError
+from luxon.helpers.api import raw_list, sql_list, obj
+from luxon.helpers.access import validate_access
+from luxon.utils.cast import to_list
 
-from infinitystone.models.roles import infinitystone_role
+from infinitystone.models.elements import infinitystone_element
+from infinitystone.models.elements import infinitystone_element_interface
+from infinitystone.helpers.crypto import Crypto
 
+
+def get_related(eid, table, where):
+    if eid is None:
+        return []
+
+    sql = "SELECT * FROM %s WHERE %s=?" % (table, where,)
+
+    with db() as conn:
+        crsr = conn.execute(sql, eid)
+        related = to_list(crsr.fetchall())
+
+    return related
 
 @register.resources()
-class Roles(object):
+class Elements(object):
     def __init__(self):
-        router.add('GET', '/v1/role/{id}', self.role,
-                   tag='roles:view')
-        router.add('GET', '/v1/roles', self.roles,
-                   tag='roles:view')
-        router.add('POST', '/v1/role', self.create,
-                   tag='roles:admin')
-        router.add(['PUT', 'PATCH'], '/v1/role/{id}', self.update,
-                   tag='roles:admin')
-        router.add('DELETE', '/v1/role/{id}', self.delete,
-                   tag='roles:admin')
+        router.add('GET', '/v1/elements',
+                   self.list_elements,
+                   tag='services')
 
-    def role(self, req, resp, id):
-        return obj(req, infinitystone_role, sql_id=id)
+        router.add('GET', '/v1/element/{eid}',
+                   self.view_element,
+                   tag='services')
 
-    def roles(self, req, resp):
-        return sql_list(req, 'infinitystone_role', ('id', 'name', ))
+        router.add('POST', '/v1/element',
+                   self.add_element,
+                   tag='services')
 
-    def create(self, req, resp):
-        role = obj(req, infinitystone_role)
-        role.commit()
-        return role
+        router.add('POST', '/v1/element/{eid}',
+                   self.add_element,
+                   tag='services')
 
-    def update(self, req, resp, id):
-        role = obj(req, infinitystone_role, sql_id=id)
-        role.commit()
-        return role
+        router.add(['PUT', 'PATCH'], '/v1/element/{eid}',
+                   self.update_element,
+                   tag='services')
 
-    def delete(self, req, resp, id):
-        role = obj(req, infinitystone_role, sql_id=id)
-        role.commit()
-        return role
+        router.add('DELETE', '/v1/element/{eid}',
+                   self.delete_element,
+                   tag='services')
+
+        router.add('POST', '/v1/element/{eid}/{interface}',
+                   self.add_interface,
+                   tag='services')
+
+        router.add(['PATCH', 'PUT'], '/v1/element/{eid}/{interface}',
+                   self.update_interface,
+                   tag='services')
+
+        router.add('DELETE', '/v1/element/{eid}/{interface}',
+                   self.delete_interface,
+                   tag='services')
+
+        router.add('GET', '/v1/element/{eid}/{interface}',
+                   self.view_interface,
+                   tag='services')
+
+        router.add('POST', '/v1/element/{eid}/tag/{tag}',
+                   self.add_tag,
+                   tag='services')
+
+        router.add('DELETE', '/v1/element/{eid}/tag/{tag}',
+                   self.delete_tag,
+                   tag='services')
+
+    def list_elements(self, req, resp):
+        sql = 'SELECT * FROM infinitystone_element'
+        context = True
+        vals = []
+        if not req.context_domain:
+            context = False
+            if req.context_tenant_id:
+                sql += ' WHERE tenant_id=?'
+                vals.append(req.context_tenant_id)
+        with db() as conn:
+            elements = conn.execute(sql, vals).fetchall()
+
+        return raw_list(req, elements, rows=len(elements), context=context)
+
+
+    def add_element(self, req, resp, eid=None):
+        element = obj(req, infinitystone_element)
+        if eid is not None:
+            element['parent_id'] = eid
+        element.commit()
+        return element
+
+    def _get_children(self, req, eid):
+        element = infinitystone_element()
+        element.sql_id(eid)
+        validate_access(req, element, tag='tachyonic')
+
+        children = []
+
+        for child in get_related(eid, 'infinitystone_element', 'parent_id'):
+            child = {"id": child['id'],
+                     "child_name": child['name'],
+                     "domain": child['domain'],
+                     "tenant_id": child['tenant_id']}
+            children.append(child)
+
+        return children
+
+    def _get_interfaces(self, req, eid):
+        element = infinitystone_element()
+        element.sql_id(eid)
+        validate_access(req, element, tag='tachyonic')
+
+        interfaces = []
+
+        for interface in get_related(eid, 'infinitystone_element_interface',
+                                     'element_id'):
+            interface = {"id": interface['interface'],
+                         "interface": interface['interface'],
+                         "metadata": interface['metadata']}
+            interfaces.append(interface)
+
+        return interfaces
+
+    def view_element(self, req, resp, eid):
+        view = req.query_params.get('view', False)
+        if view:
+            if view == 'children':
+                children = self._get_children(req, eid)
+                return raw_list(req, children, rows=len(children),
+                                context=False)
+            if view == 'interfaces':
+                interfaces = self._get_interfaces(req, eid)
+                return raw_list(req, interfaces, rows=len(interfaces),
+                                context=False)
+
+        element = obj(req, infinitystone_element, sql_id=eid)
+
+        to_return = element.dict
+
+        with db() as conn:
+            children = conn.execute("SELECT id, name, enabled, creation_time"
+                                      " FROM infinitystone_element"
+                                      " WHERE parent_id = %s", eid).fetchall()
+            interfaces = conn.execute("SELECT interface,metadata,creation_time"
+                                      " FROM infinitystone_element_interface"
+                                      " WHERE element_id = %s", eid).fetchall()
+            tags = conn.execute("SELECT name"
+                                      " FROM infinitystone_element_tag"
+                                      " WHERE element_id = %s", eid).fetchall()
+            try:
+                parent = conn.execute("SELECT name FROM infinitystone_element "
+                                      "WHERE id=%s",
+                                      element['parent_id']).fetchone()
+                to_return['parent'] = parent
+            except SQLOperationalError:
+                pass
+
+        to_return['children'] = children
+        to_return['interfaces'] = interfaces
+        to_return['tags'] = tags
+
+        if element['encrypt_metadata']:
+            crypto = Crypto()
+            for interfaces in to_return['interfaces']:
+                interfaces['metadata'] = crypto.decrypt(interfaces['metadata'])
+
+        for interfaces in to_return['interfaces']:
+            interfaces['metadata'] = js.loads(interfaces['metadata'])
+
+        return to_return
+
+    def update_element(self, req, resp, eid):
+        element = obj(req, infinitystone_element, sql_id=eid)
+        element.commit()
+        return self.view_element(req, resp, eid)
+
+    def delete_element(self, req, resp, id):
+        element = obj(req, infinitystone_element, sql_id=id)
+        element.commit()
+        return element
+
+    def add_interface(self, req, resp, eid, interface):
+        metadata_model = EntryPoints('netrino_elements')[interface]()
+        metadata_model.update(req.json)
+        # Check to see all required data was submittied
+        metadata_model._pre_commit()
+        metadata = metadata_model.json
+        element = infinitystone_element()
+        element.sql_id(eid)
+        if element['encrypt_metadata']:
+            crypto = Crypto()
+            metadata = crypto.encrypt(metadata)
+        model = infinitystone_element_interface()
+        model['element_id'] = eid
+        model['interface'] = interface
+        model['metadata'] = metadata
+        model.commit()
+        return self.view_interface(req, resp, eid, interface)
+
+    def view_interface(self, req, resp, eid, interface):
+        with db() as conn:
+            cursor = conn.execute('SELECT interface, metadata, creation_time' +
+                                  ' FROM infinitystone_element_interface' +
+                                  ' WHERE element_id = %s' +
+                                  ' AND interface = %s', (eid, interface,))
+            interface = cursor.fetchone()
+
+            if interface is None:
+                raise NotFoundError('Interface not found')
+
+            element = conn.execute('SELECT encrypt_metadata FROM '
+                                   'infinitystone_element WHERE id = %s',
+                                   eid).fetchone()
+
+            if element['encrypt_metadata']:
+                crypto = Crypto()
+                interface['metadata'] = crypto.decrypt(interface['metadata'])
+
+            interface['metadata'] = js.loads(interface['metadata'])
+
+            return interface
+
+    def update_interface(self, req, resp, eid, interface):
+        # In case not all fields was submitted,
+        # first we grab what we had.
+        current = self.view_interface(req, resp, eid, interface)
+        crypto = Crypto()
+        model = EntryPoints('netrino_elements')[interface]()
+        model.update(current['metadata'])
+        model.update(req.json)
+        model_json = model.json
+        with db() as conn:
+            element = conn.execute('SELECT encrypt_metadata FROM '
+                                   'infinitystone_element WHERE id = %s',
+                                   eid).fetchone()
+
+            if element['encrypt_metadata']:
+                model_json = crypto.encrypt(model_json)
+
+            conn.execute('UPDATE infinitystone_element_interface' +
+                         ' SET metadata = %s' 
+                         ' WHERE element_id = %s' +
+                         ' AND interface = %s', (model_json,
+                                                 eid, interface,))
+            conn.commit()
+        return self.view_interface(req, resp, eid, interface)
+
+    def delete_interface(self, req, resp, eid, interface):
+        with db() as conn:
+            conn.execute('DELETE FROM infinitystone_element_interface' +
+                         ' WHERE element_id = %s' +
+                         ' AND interface = %s', (eid, interface,))
+            conn.commit()
+
+    def add_tag(self, req, resp, eid, tag):
+        tag_entry_id = str(uuid4())
+        with db() as conn:
+            conn.execute('INSERT INTO infinitystone_element_tag' +
+                         ' (id, name, element_id)' +
+                         ' VALUES' +
+                         ' (%s, %s, %s)', (tag_entry_id,tag, eid))
+            conn.commit()
+            return self.view_element(req, resp, eid)
+
+    def delete_tag(self, req, resp, eid, tag):
+        with db() as conn:
+            conn.execute('DELETE FROM infinitystone_element_tag' +
+                         ' WHERE element_id = %s' +
+                         ' AND name = %s', (eid, tag,))
+            conn.commit()
+            return self.view_element(req, resp, eid)

@@ -39,9 +39,7 @@ class infinitystone_user(Model):
     domain = Model.Fqdn(internal=True)
     tenant_id = Model.Uuid(internal=True)
     username = Model.Username(placeholder="john", max_length=100, null=False)
-    password = Model.String(max_length=100, null=True, ignore_null=True,
-                            password=True)
-    confirm_password = Model.Confirm(password)
+    password = Model.Password(max_length=100, null=True, ignore_null=True)
     email = Model.Email(placeholder="john.doe@acmecorp.org", max_length=255)
     name = Model.String(placeholder="John Doe", max_length=100)
     phone_mobile = Model.Phone(placeholder="+1-202-555-0103")

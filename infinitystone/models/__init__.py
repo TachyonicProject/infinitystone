@@ -3,6 +3,8 @@ from infinitystone.models.endpoints import infinitystone_endpoint
 from infinitystone.models.roles import infinitystone_role
 from infinitystone.models.tenants import infinitystone_tenant
 from infinitystone.models.user_roles import infinitystone_user_role
+from infinitystone.models.virtual import infinitystone_virtual
+from infinitystone.models.nas import infinitystone_nas
 from infinitystone.models.users import infinitystone_user
 from infinitystone.models.groups import infinitystone_group
 from infinitystone.models.user_groups import infinitystone_user_group

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018 Christiaan Rademan, Dave Kruger.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,46 +27,28 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import register
-from luxon import router
-from luxon.helpers.api import sql_list, obj
+import os
 
-from infinitystone.models.groups import infinitystone_group
+from luxon import g
+from luxon.utils.singleton import Singleton
+from luxon.utils.crypto import Crypto as CryptoLuxon
+from luxon.exceptions import NotFoundError
 
+class Crypto(CryptoLuxon, metaclass=Singleton):
+    """Helper wrapper for Crypto Luxon utility.
 
-@register.resources()
-class Groups(object):
+    Used for signing/encryption of secret data using 'credentials.key'
+    """
     def __init__(self):
-        router.add('GET', '/v1/group/{id}', self.group,
-                   tag='services')
-        router.add('GET', '/v1/groups', self.groups,
-                   tag='services')
-        router.add('POST', '/v1/group', self.create,
-                   tag='services')
-        router.add(['PUT', 'PATCH'], '/v1/group/{id}', self.update,
-                   tag='services')
-        router.add('DELETE', '/v1/group/{id}', self.delete,
-                   tag='services')
-
-    def group(self, req, resp, id):
-        return obj(req, infinitystone_group, sql_id=id)
-
-    def groups(self, req, resp):
-        return sql_list(req, 'infinitystone_group', ('id', 'name', ))
-
-    def create(self, req, resp):
-        group = obj(req, infinitystone_group)
-        group.commit()
-        return group
-
-    def update(self, req, resp, id):
-        group = obj(req, infinitystone_group, sql_id=id)
-        group.commit()
-        return group
-
-    def delete(self, req, resp, id):
-        group = obj(req, infinitystone_group, sql_id=id)
-        group.commit()
-        return group
-
-
+        super().__init__()
+        key_loc = g.app.path.rstrip('/') + '/credentials.key'
+        if not os.path.isfile(key_loc):
+            message = "No 'credentials.key' found in %s. Generate with " \
+                      "'luxon -k %s'" % (g.app.path,g.app.path,)
+            raise NotFoundError(message)
+        with open(key_loc, 'rb') as key_file:
+            key_str = key_file.read()
+            key = key_str[0:32]
+            iv = key_str[32:48] 
+            self.load_key(key)
+            self.load_iv(iv)

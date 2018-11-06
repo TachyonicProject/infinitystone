@@ -36,39 +36,10 @@ from luxon.utils.timezone import now
 from infinitystone.models.domains import infinitystone_domain
 from infinitystone.models.tenants import infinitystone_tenant
 
-USERS = [
-    ('00000000-0000-0000-0000-000000000000', 'tachyonic',
-     None, None,
-     'root', '$2b$12$QaWa.Q3gZuafYXkPo3EJRuSJ1wGuutShb73RuH1gdUVri82CU6V5q',
-     None, 'Default Root User', None, None, None, None,
-     1, now()),
-]
-
-
 @register.model()
-class infinitystone_user(SQLModel):
+class infinitystone_virtual(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
-    tag = SQLModel.String(readonly=True, internal=True, hidden=True, max_length=30, null=False)
-    nas = SQLModel.Uuid(internal=True)
     domain = SQLModel.Fqdn(internal=True)
-    tenant_id = SQLModel.Uuid(internal=True)
-    username = SQLModel.Username(max_length=64, null=False)
-    password = SQLModel.Password(max_length=150, null=True)
-    email = SQLModel.Email(max_length=100)
-    name = SQLModel.String(max_length=64)
-    phone_mobile = SQLModel.Phone()
-    phone_office = SQLModel.Phone()
-    designation = SQLModel.Enum('', 'Mr', 'Mrs', 'Ms', 'Dr', 'Prof')
-    last_login = SQLModel.DateTime(readonly=True)
-    enabled = SQLModel.Boolean(default=True)
-    creation_time = SQLModel.DateTime(default=now, readonly=True)
-    unique_username = SQLModel.UniqueIndex(username, domain, tag)
-    user_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
-    user_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
-    users = SQLModel.Index(domain, username)
-    users_tenants = SQLModel.Index(domain, tenant_id)
-    users_domain = SQLModel.Index(domain)
-    user_search = SQLModel.Index(username)
-    name_search = SQLModel.Index(name)
+    name = SQLModel.String(max_length=64, null=False)
+    virtual_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
     primary_key = id
-    db_default_rows = USERS

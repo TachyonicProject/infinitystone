@@ -1,0 +1,52 @@
+{% extends "photonic/view.html" %}
+
+{% block content %}
+    <form id="form" method='post' enctype="multipart/form-data">
+        {{ form }}
+    </form>
+<table class="display" data-endpoint='identity' data-url="/v1/group/{{id}}/attrs" width="100%">
+    <thead>
+        <tr>
+			<tr>
+				<th id='name'>Attribute</th>
+				<th id='op'>Operation</th>
+				<th id='value'>Value</th>
+				<th id='ctx'>Type</th>
+			</tr>
+			<th data-confirm="Delete NAS Server?" data-href="/infrastructure/authentication/group/rm_attr" data-close width="2rem">
+				<span data-feather="minus-square"></span>
+			</th>
+        </tr>
+    </thead>
+</table>
+ <form class="form-inline" autocomplete="off" data-msg="Succesfully added NAS" data-datatable action="{{APP}}/infrastructure/authentication/group/add_attr/{{id}}" enctype="multipart/form-data" class="row">
+	 <div class="form-group">
+		<input type="text" name="attribute" placeholder="Attribute">
+	 </div>
+	 <div class="form-group">
+		 <select name="op">
+			<option value="=">Reply Item</option>
+			<option value="+=">Append Reply</option>
+		</select>
+	 </div>
+	 <div class="form-group">
+		<input type="text" name="value" placeholder="Value">
+	 </div>
+	 <div class="form-group">
+		 <select name="ctx">
+			<option value="reply">Reply</option>
+			<option value="check">Check</option>
+		</select>
+	 </div>
+	 <div class="form-group">
+		  <input class="form-control btn btn-danger" type="submit" value="Add AVP" >
+	 </div>
+</form>
+
+{% endblock %}
+
+{% block buttons %}
+    <a href="{{ APP }}/infrastructure/authentication/group/{{id}}" class="btn btn-default">Cancel</a>
+    <a data-confirm="Delete Virtual?" data-closeall href="{{ APP }}/infrastructure/authentication/group/delete/{{id}}" class="btn btn-danger">Delete</a>
+    <a href="{{ APP }}/infrastructure/authentication/group/edit/{{id}}" data-form="form" class="btn btn-primary">Update</a>
+{% endblock %}
