@@ -44,6 +44,7 @@ class infinitystone_user_attr(SQLModel):
     tenant_id = SQLModel.String()
     user_id = SQLModel.Uuid()
     attribute = SQLModel.String()
+    op = SQLModel.String(max_length=2)
     value = SQLModel.String()
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     user_attr_ref = SQLModel.ForeignKey(user_id, infinitystone_user.id)

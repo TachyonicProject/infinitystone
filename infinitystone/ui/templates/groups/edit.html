@@ -1,0 +1,58 @@
+{% extends "photonic/view.html" %}
+
+{% block content %}
+    <form id="form" method='post' enctype="multipart/form-data">
+        {{ form }}
+    </form>
+<table class="display" data-endpoint='identity' data-url="/v1/virtual/{{id}}/nas" width="100%">
+    <thead>
+        <tr>
+            <th id='name'>Name</th>
+            <th id='server'>Server</th>
+            <th id='nas_type'>Type</th>
+            <th id='secret'>Secret</th>
+			<th data-confirm="Delete NAS Server?" data-href="/infrastructure/authentication/virtual/rm_nas" data-close width="2rem">
+				<span data-feather="minus-square"></span>
+			</th>
+        </tr>
+    </thead>
+</table>
+ <form autocomplete="off" data-msg="Succesfully added NAS" data-datatable action="{{APP}}/infrastructure/authentication/virtual/add_nas/{{id}}" enctype="multipart/form-data" class="row">
+	 <div class="col-sm-2">
+		<input type="text" name="name" placeholder="Short name" class="form-control">
+	 </div>
+	 <div class="col-sm-3">
+		<input type="text" name="server" placeholder="IP Address" class="form-control">
+	 </div>
+	 <div class="col-sm-3">
+		 <select name="nas_type" width='300px' class="form-control">
+			<option value="other">Other</option>
+			<option value="cisco">Cisco</option>
+			<option value="computone">Computone</option>
+			<option value="livingston">livingston</option>
+			<option value="juniper">Juniper</option>
+			<option value="max40xx">Max40xxr</option>
+			<option value="multitech">Multitech</option>
+			<option value="netserver">Netserver</option>
+			<option value="pathras">Pathras</option>
+			<option value="patton">Patton</option>
+			<option value="portslave">Portslave</option>
+			<option value="tc">TC</option>
+			<option value="usrhiper">Usrhiper</option>
+		</select>
+	 </div>
+     <div class="col-sm-2">
+		<input type="text" name="secret" class="form-control" placeholder="Secret">
+	 </div>
+	 <div class="col-sm-2">
+		  <input id='role_add_button' class="btn btn-danger" type="submit" value="Add NAS" >
+	 </div>
+</form>
+
+{% endblock %}
+
+{% block buttons %}
+    <a href="{{ APP }}/infrastructure/authentication/virtual/{{id}}" class="btn btn-default">Cancel</a>
+    <a data-confirm="Delete Virtual?" data-closeall href="{{ APP }}/infrastructure/authentication/virtual/delete/{{id}}" class="btn btn-danger">Delete</a>
+    <a href="{{ APP }}/infrastructure/authentication/virtual/edit/{{id}}" data-form="form" class="btn btn-primary">Update</a>
+{% endblock %}

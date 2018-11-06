@@ -38,15 +38,15 @@ from infinitystone.models.groups import infinitystone_group
 class Groups(object):
     def __init__(self):
         router.add('GET', '/v1/group/{id}', self.group,
-                   tag='internal')
+                   tag='services')
         router.add('GET', '/v1/groups', self.groups,
-                   tag='internal')
+                   tag='services')
         router.add('POST', '/v1/group', self.create,
-                   tag='internal')
+                   tag='services')
         router.add(['PUT', 'PATCH'], '/v1/group/{id}', self.update,
-                   tag='internal')
+                   tag='services')
         router.add('DELETE', '/v1/group/{id}', self.delete,
-                   tag='internal')
+                   tag='services')
 
     def group(self, req, resp, id):
         return obj(req, infinitystone_group, sql_id=id)
@@ -68,3 +68,5 @@ class Groups(object):
         group = obj(req, infinitystone_group, sql_id=id)
         group.commit()
         return group
+
+

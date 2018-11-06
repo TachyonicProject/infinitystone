@@ -1,0 +1,20 @@
+{% extends "photonic/view.html" %}
+{% block content %}
+<form method='post' enctype="multipart/form-data" disabled>
+    {{ form }}
+</form>
+<table class="display" data-endpoint='identity' data-url="/v1/group/{{id}}/attrs" width="100%">
+    <thead>
+        <tr>
+            <th id='name'>Attribute</th>
+            <th id='server'>Operation</th>
+            <th id='nas_type'>Value</th>
+        </tr>
+    </thead>
+</table>
+{% endblock %}
+
+{% block buttons %}
+    <a href="#" onclick="close_window();" class="btn btn-default">Back</a>
+    <a href="{{ APP }}/infrastructure/authentication/group/edit/{{id}}" class="btn btn-primary">Edit</a>
+{% endblock %}
