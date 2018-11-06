@@ -41,15 +41,12 @@ from infinitystone.models.groups import infinitystone_group
 class infinitystone_group_attr(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     domain = SQLModel.Fqdn(internal=True)
-    tenant_id = SQLModel.String()
     group_id = SQLModel.Uuid()
     attribute = SQLModel.String()
+    op = SQLModel.String(max_length=2)
     value = SQLModel.String()
+    ctx = SQLModel.Enum('reply', 'check')
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     group_attr_ref = SQLModel.ForeignKey(group_id, infinitystone_group.id)
     group_attr_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
-    group_attr_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
-    group_attrs = SQLModel.Index(group_id)
-    group_attrs_domain = SQLModel.Index(domain, group_id)
-    group_attrs_tenant_domain = SQLModel.Index(domain, tenant_id, group_id)
     primary_key = id

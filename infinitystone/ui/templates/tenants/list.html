@@ -5,6 +5,13 @@
         <tr>
             <th id='name'>Name</th>
             <th id='crm_id'>CRM ID</th>
+            {% if not REQ.context_domain %}
+            <th id='domain'>Domain</th>
+            {% else %}
+                {% if not REQ.context_tenant_id %}
+            <th id='id'>Tenant ID</th>
+                {% endif %}
+            {% endif %}
             <th data-modal data-href="/accounts/tenants" width="2rem">
                 <span data-feather="edit"></span>
             </th>

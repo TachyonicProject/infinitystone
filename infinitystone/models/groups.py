@@ -37,15 +37,8 @@ from luxon.utils.timezone import now
 @register.model()
 class infinitystone_group(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
-    tag = SQLModel.String(hidden=True, max_length=30, null=False)
     domain = SQLModel.Fqdn(internal=True)
-    tenant_id = SQLModel.Uuid(internal=True)
     name = SQLModel.String(max_length=64, null=False)
     description = SQLModel.Text()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     primary_key = id
-    unique_group = SQLModel.UniqueIndex(name)
-    groups_search_index = SQLModel.Index(name)
-    groups_search_domain_index = SQLModel.Index(domain, name)
-    groups_search_tenant = SQLModel.Index(tenant_id, name)
-    groups_search_domain_tenant = SQLModel.Index(domain, tenant_id, name)

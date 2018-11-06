@@ -31,7 +31,6 @@ from luxon import register
 from luxon import router
 from luxon import db
 from luxon.utils.sql import build_where
-from luxon.utils.password import hash
 from luxon.helpers.access import validate_access
 from luxon.helpers.api import raw_list, sql_list, obj
 from luxon.exceptions import DuplicateError, AccessDeniedError
@@ -45,6 +44,7 @@ from infinitystone.utils.auth import (get_user_roles,
                                       tenants,
                                       tenant_or_sub,
                                       get_sub_tenants,
+                                      hash_password,
                                       get_all_roles)
 
 from luxon import GetLogger
@@ -113,7 +113,7 @@ class Users(object):
 
     def user(self, req, resp, id, tag='tachyonic'):
         return obj(req, infinitystone_user, sql_id=id,
-                   hide=('password',), tag=tag)
+                   tag=tag, hide=('password',))
 
     def users(self, req, resp, tag='tachyonic'):
         return sql_list(req, 'infinitystone_user',
@@ -122,25 +122,27 @@ class Users(object):
 
     def create(self, req, resp, tag='tachyonic'):
         user = obj(req, infinitystone_user,
-                   hide=('password',), tag=tag)
+                   tag=tag, hide=('password',))
         if req.json.get('password') is not None:
-            user['password'] = hash(req.json['password'])
+            user['password'] = hash_password(req.json['password'],
+                                             tag)
         user.commit()
         return user
 
     def update(self, req, resp, id, tag='tachyonic'):
         user = obj(req, infinitystone_user, sql_id=id,
-                   hide=('password',), tag=tag)
+                   tag=tag, hide=('password',))
         if req.json.get('password') is not None:
-            user['password'] = hash(req.json['password'])
+            user['password'] = hash_password(req.json['password'],
+                                             tag)
+
         user.commit()
         return user
 
     def delete(self, req, resp, id, tag='tachyonic'):
         user = obj(req, infinitystone_user, sql_id=id,
-                   hide=('password',), tag=tag)
+                   tag=tag)
         user.commit()
-        return user
 
 
     def _get_roles(self, req, user_id=None):

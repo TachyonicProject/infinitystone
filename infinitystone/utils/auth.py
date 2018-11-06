@@ -34,6 +34,18 @@ from luxon.utils.cast import to_list
 from luxon.exceptions import AccessDeniedError
 from infinitystone.models.users import infinitystone_user
 from luxon.helpers.api import sql_list, obj
+from luxon import constants as const
+from luxon.utils.password import hash
+
+
+def hash_password(password, tag):
+    if tag == 'tachyonic':
+        # DEFAULT BLOWFISH BCRYPT
+        return hash(password)
+    else:
+        # DEFAULT CRYPT SHA512
+        return hash(password, const.SHA512)
+
 
 
 def localize(tag, username, domain):
@@ -116,7 +128,7 @@ def get_tenant_domain(tenant_id):
         sql += ' id = %s'
         result = conn.execute(sql,
                               tenant_id).fetchone()
-        if result and result['domain']:
+        if result:
             return result['domain']
 
 def get_sub_tenants(tenant_id):

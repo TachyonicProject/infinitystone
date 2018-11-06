@@ -104,20 +104,22 @@ class Token(object):
         tenant_id = request_object.get('tenant_id')
         user_id = req.credentials.user_id
         if tenant_id is not None:
+            req.credentials.domain = get_tenant_domain(tenant_id)
             req.credentials.tenant_id = tenant_id
             default_role = g.app.config.get(
                 'identity', 'default_tenant_role',
                 fallback='Customer')
-            req.credentials.roles = get_context_roles(user_id, domain,
-                                                      tenant_id)
             req.credentials.roles = default_role
-            req.credentials.domain = get_tenant_domain(tenant_id)
+            req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id,
                                                       req.credentials.domain)
+            req.credentials.roles = get_context_roles(user_id,
+                                                      req.credentials.domain,
+                                                      tenant_id)
 
         elif domain is not None:
             req.credentials.domain = domain
+            req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id, domain)
-            
             
         return req.credentials
