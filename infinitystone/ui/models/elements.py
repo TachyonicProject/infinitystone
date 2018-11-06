@@ -37,7 +37,7 @@ class infinitystone_element(Model):
     id = Model.Uuid(default=uuid4, internal=True)
     domain = Model.Fqdn(internal=True)
     tenant_id = Model.Uuid(internal=True)
-    parent_id = Model.Uuid()
+    parent_id = Model.Uuid(hidden=True)
     name = Model.Text(null=False)
     enabled = Model.Boolean(default=True)
     encrypt_metadata = Model.Boolean(default=True)
