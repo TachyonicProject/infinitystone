@@ -29,30 +29,22 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from uuid import uuid4
 
-from luxon import register
-from luxon import SQLModel
+from luxon import Model
 from luxon.utils.timezone import now
 
-from infinitystone.models.domains import infinitystone_domain
-from infinitystone.models.tenants import infinitystone_tenant
-from infinitystone.models.groups import infinitystone_group
-
-
-@register.model()
-class infinitystone_user_group(SQLModel):
-    id = SQLModel.Uuid(default=uuid4, internal=True)
-    group_id = SQLModel.Uuid()
-    domain = SQLModel.Fqdn(internal=True)
-    tenant_id = SQLModel.String()
-    user_id = SQLModel.Uuid()
-    priority = SQLModel.Integer()
-    creation_time = SQLModel.DateTime(readonly=True, default=now)
-    unique_user_group = SQLModel.UniqueIndex(group_id, user_id)
-    user_group_id_ref = SQLModel.ForeignKey(group_id, infinitystone_group.id)
-    user_group_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
-    user_group_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
-    group_index = SQLModel.Index(group_id)
-    domain_group_index = SQLModel.Index(domain, group_id)
-    tenant_group_index = SQLModel.Index(tenant_id, group_id)
-    tenant_domain_group_index = SQLModel.Index(domain, tenant_id, group_id)
+class infinitystone_subscriber(Model):
+    id = Model.Uuid(default=uuid4, internal=True)
+    tag = Model.String(hidden=True, max_length=30, null=False)
+    virtual_id = Model.Uuid(readonly=True, null=False, data_url='/v1/virtual')
+    domain = Model.Fqdn(internal=True)
+    tenant_id = Model.Uuid(internal=True)
+    username = Model.Username(placeholder="john", max_length=100, null=False)
+    password = Model.Password(max_length=100, null=True, ignore_null=True)
+    email = Model.Email(placeholder="john.doe@acmecorp.org", max_length=255)
+    name = Model.String(placeholder="John Doe", max_length=100)
+    phone_mobile = Model.Phone(placeholder="+1-202-555-0103")
+    phone_office = Model.Phone(placeholder="+1-202-555-0105")
+    designation = Model.Enum('', 'Mr', 'Mrs', 'Ms', 'Dr', 'Prof')
+    enabled = Model.Boolean(default=True)
+    creation_time = Model.DateTime(default=now, readonly=True)
     primary_key = id

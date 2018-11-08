@@ -5,4 +5,5 @@ import infinitystone.ui.views.endpoints
 import infinitystone.ui.views.domains
 import infinitystone.ui.views.roles
 import infinitystone.ui.views.virtual
-#import infinitystone.ui.views.groups
+import infinitystone.ui.views.groups
+import infinitystone.ui.views.subscribers

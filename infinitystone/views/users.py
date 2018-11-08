@@ -33,10 +33,12 @@ from luxon import db
 from luxon.utils.sql import build_where
 from luxon.helpers.access import validate_access
 from luxon.helpers.api import raw_list, sql_list, obj
-from luxon.exceptions import DuplicateError, AccessDeniedError
+from luxon.exceptions import ValidationError, DuplicateError, AccessDeniedError
 
 from infinitystone.models.users import infinitystone_user
 from infinitystone.models.tenants import infinitystone_tenant
+from infinitystone.models.user_groups import infinitystone_user_group
+from infinitystone.models.user_attrs import infinitystone_user_attr
 from infinitystone.models.user_roles import infinitystone_user_role
 from infinitystone.utils.auth import (get_user_roles,
                                       get_role_id,
@@ -45,7 +47,9 @@ from infinitystone.utils.auth import (get_user_roles,
                                       tenant_or_sub,
                                       get_sub_tenants,
                                       hash_password,
+                                      get_user_groups,
                                       get_all_roles)
+from infinitystone.lib.avps import avps
 
 from luxon import GetLogger
 
@@ -101,15 +105,32 @@ class Users(object):
 
         # Services Users
         router.add('GET', '/v1/user/{id}/{tag}', self.user,
-                   tag='internal')
+                   tag='services:view')
         router.add('GET', '/v1/users/{tag}', self.users,
-                   tag='internal')
+                   tag='services:view')
         router.add('POST', '/v1/user/{tag}', self.create,
-                   tag='internal')
+                   tag='services:admin')
         router.add(['PUT', 'PATCH'], '/v1/user/{id}/{tag}', self.update,
-                   tag='internal')
+                   tag='services:admin')
         router.add('DELETE', '/v1/user/{id}/{tag}', self.delete,
-                   tag='internal')
+                   tag='services:admin')
+
+        router.add('GET', '/v1/user_attrs/{user_id}', self.attrs,
+                   tag='services:view')
+        router.add('POST', '/v1/user_attr/{user_id}', self.add_attr,
+                   tag='services:admin')
+        router.add('DELETE', '/v1/user_attr/{user_id}/{group_id}', self.rm_attr,
+                   tag='services:admin')
+
+        router.add('GET', '/v1/user_groups/{user_id}', self.groups,
+                   tag='services:view')
+        router.add('POST', '/v1/user_group/{user_id}', self.add_group,
+                   tag='services:admin')
+        router.add('DELETE', '/v1/user_group/{user_id}/{group_id}', self.rm_group,
+                   tag='services:admin')
+
+        router.add('GET', '/v1/avps', self.avps,
+                   tag='login')
 
     def user(self, req, resp, id, tag='tachyonic'):
         return obj(req, infinitystone_user, sql_id=id,
@@ -123,6 +144,8 @@ class Users(object):
     def create(self, req, resp, tag='tachyonic'):
         user = obj(req, infinitystone_user,
                    tag=tag, hide=('password',))
+        if tag != 'tachyonic' and user['virtual_id'] is None:
+            raise ValidationError('Require Virtual Authentication Service')
         if req.json.get('password') is not None:
             user['password'] = hash_password(req.json['password'],
                                              tag)
@@ -250,3 +273,53 @@ class Users(object):
             sql += " WHERE %s" % where
             conn.execute(sql, values)
             conn.commit()
+
+    def groups(self, req, resp, user_id):
+        user = infinitystone_user()
+        user.sql_id(user_id)
+        validate_access(req, user, tag='radius')
+        user_groups = get_user_groups(user_id)
+        return raw_list(req, user_groups, rows=len(user_groups))
+
+    def add_group(self, req, resp, user_id):
+        user = infinitystone_user()
+        user.sql_id(user_id)
+        validate_access(req, user, tag='radius')
+        attr = obj(req, infinitystone_user_group)
+        attr['user_id'] = user_id
+        attr.commit()
+
+    def rm_group(self, req, resp, user_id, group_id):
+        user = infinitystone_user()
+        user.sql_id(user_id)
+        validate_access(req, user, tag='radius')
+        attr = obj(req, infinitystone_user_group, sql_id=group_id)
+        attr.commit()
+
+    def attrs(self, req, resp, user_id):
+        user = infinitystone_user()
+        user.sql_id(user_id)
+        validate_access(req, user, tag='radius')
+        where = { 'user_id': user_id }
+        return sql_list(req, 'infinitystone_user_attr',
+                        ('id', 'attribute', 'op', 'value', 'ctx', ),
+                        where=where)
+       
+    def add_attr(self, req, resp, user_id):
+        user = infinitystone_user()
+        user.sql_id(user_id)
+        validate_access(req, user, tag='radius')
+        attr = obj(req, infinitystone_user_attr)
+        attr['user_id'] = user_id
+        attr.commit()
+        return attr
+
+    def rm_attr(self, req, resp, user_id, group_id):
+        user = infinitystone_user()
+        user.sql_id(user_id)
+        validate_access(req, user, tag='radius')
+        attr = obj(req, infinitystone_user_attr, sql_id=group_id)
+        attr.commit()
+
+    def avps(self, req, resp):
+        return raw_list(req, avps, rows=len(avps))

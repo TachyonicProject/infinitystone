@@ -7,38 +7,36 @@
 <table class="display" data-endpoint='identity' data-url="/v1/group/{{id}}/attrs" width="100%">
     <thead>
         <tr>
-			<tr>
-				<th id='name'>Attribute</th>
-				<th id='op'>Operation</th>
-				<th id='value'>Value</th>
-				<th id='ctx'>Type</th>
-			</tr>
-			<th data-confirm="Delete NAS Server?" data-href="/infrastructure/authentication/group/rm_attr" data-close width="2rem">
-				<span data-feather="minus-square"></span>
-			</th>
+            <th id='attribute'>Attribute</th>
+            <th id='op'>Operation</th>
+            <th id='value'>Value</th>
+            <th id='ctx'>Context</th>
+            <th data-confirm="Delete Attribute Value Pair?" data-href="/infrastructure/authentication/group/rm_attr" data-close width="2rem">
+                <span data-feather="minus-square"></span>
         </tr>
     </thead>
 </table>
- <form class="form-inline" autocomplete="off" data-msg="Succesfully added NAS" data-datatable action="{{APP}}/infrastructure/authentication/group/add_attr/{{id}}" enctype="multipart/form-data" class="row">
-	 <div class="form-group">
-		<input type="text" name="attribute" placeholder="Attribute">
-	 </div>
-	 <div class="form-group">
-		 <select name="op">
-			<option value="=">Reply Item</option>
-			<option value="+=">Append Reply</option>
+ <form class="row" autocomplete="off" data-msg="Succesfully added AVP" data-datatable action="{{APP}}/infrastructure/authentication/group/add_attr/{{id}}" enctype="multipart/form-data" class="row">
+	 <div class="col-sm-3">
+		 <select name="attribute" class="form-control" data-endpoint="identity" data-url="/v1/avps">
 		</select>
 	 </div>
-	 <div class="form-group">
-		<input type="text" name="value" placeholder="Value">
+	 <div class="col-sm-2">
+		 <select name="op" class="form-control">
+			<option value="=">=</option>
+			<option value="+=">+=</option>
+		</select>
 	 </div>
-	 <div class="form-group">
-		 <select name="ctx">
+	 <div class="col-sm-3">
+		<input class="form-control" type="text" name="value" placeholder="Value">
+	 </div>
+	 <div class="col-sm-2">
+		 <select name="ctx" class="form-control">
 			<option value="reply">Reply</option>
 			<option value="check">Check</option>
 		</select>
 	 </div>
-	 <div class="form-group">
+	 <div class="col-sm-2">
 		  <input class="form-control btn btn-danger" type="submit" value="Add AVP" >
 	 </div>
 </form>

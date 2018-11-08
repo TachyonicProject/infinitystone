@@ -32,6 +32,7 @@ from luxon import router
 from luxon.helpers.api import sql_list, obj
 
 from infinitystone.models.groups import infinitystone_group
+from infinitystone.models.group_attrs import infinitystone_group_attr
 
 
 @register.resources()
@@ -46,6 +47,12 @@ class Groups(object):
         router.add(['PUT', 'PATCH'], '/v1/group/{id}', self.update,
                    tag='services')
         router.add('DELETE', '/v1/group/{id}', self.delete,
+                   tag='services')
+        router.add('GET', '/v1/group/{id}/attrs', self.attrs,
+                   tag='services')
+        router.add('POST', '/v1/group/{id}/attrs', self.add_attr,
+                   tag='services')
+        router.add('DELETE', '/v1/group/{id}/attrs', self.rm_attr,
                    tag='services')
 
     def group(self, req, resp, id):
@@ -69,4 +76,18 @@ class Groups(object):
         group.commit()
         return group
 
+    def attrs(self, req, resp, id):
+        where = { 'group_id': id }
+        return sql_list(req, 'infinitystone_group_attr',
+                        ('id', 'attribute', 'op', 'value', 'ctx', ),
+                        where=where)
+       
+    def add_attr(self, req, resp, id):
+        attr = obj(req, infinitystone_group_attr)
+        attr['group_id'] = id
+        attr.commit()
+        return attr
 
+    def rm_attr(self, req, resp, id):
+        attr = obj(req, infinitystone_group_attr, sql_id=id)
+        attr.commit()
