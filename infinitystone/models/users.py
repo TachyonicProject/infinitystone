@@ -37,7 +37,7 @@ from infinitystone.models.domains import infinitystone_domain
 from infinitystone.models.tenants import infinitystone_tenant
 
 USERS = [
-    ('00000000-0000-0000-0000-000000000000', 'tachyonic',
+    ('00000000-0000-0000-0000-000000000000', 'tachyonic', None,
      None, None,
      'root', '$2b$12$QaWa.Q3gZuafYXkPo3EJRuSJ1wGuutShb73RuH1gdUVri82CU6V5q',
      None, 'Default Root User', None, None, None, None,
@@ -49,7 +49,7 @@ USERS = [
 class infinitystone_user(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     tag = SQLModel.String(readonly=True, internal=True, hidden=True, max_length=30, null=False)
-    nas = SQLModel.Uuid(internal=True)
+    virtual_id = SQLModel.Uuid()
     domain = SQLModel.Fqdn(internal=True)
     tenant_id = SQLModel.Uuid(internal=True)
     username = SQLModel.Username(max_length=64, null=False)

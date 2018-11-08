@@ -70,12 +70,12 @@ class Groups():
                    tag='services')
 
         router.add('POST',
-                   '/infrastructure/authentication/group/add_nas/{id}',
+                   '/infrastructure/authentication/group/add_attr/{id}',
                    self.add_attr,
                    tag='services')
 
         router.add('GET',
-                   '/infrastructure/authentication/group/rm_nas/{id}',
+                   '/infrastructure/authentication/group/rm_attr/{id}',
                    self.rm_attr,
                    tag='services')
 
@@ -126,11 +126,11 @@ class Groups():
     def add_attr(self, req, resp, id):
         data = req.form_dict
 
-        uri = '/v1/group/%s/nas' % id
+        uri = '/v1/group/%s/attrs' % id
 
         response = req.context.api.execute('POST', uri, data=data,
                                            endpoint='identity')
 
     def rm_attr(self, req, resp, id):
-        uri = '/v1/group/%s/nas' % id
-        response = req.context.api.execute('DELETE', uri, endpoint='identity')  
+        uri = '/v1/group/%s/attrs' % id
+        response = req.context.api.execute('DELETE', uri, endpoint='identity') 

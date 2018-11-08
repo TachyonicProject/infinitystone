@@ -173,6 +173,8 @@ def get_user_groups(user_id):
 
     with db() as conn:
         query = 'SELECT' + \
+                ' infinitystone_user_group.id AS id,' + \
+                ' infinitystone_user_group.priority AS priority,' + \
                 ' infinitystone_group.name AS name' + \
                 ' FROM' + \
                 ' infinitystone_user_group LEFT JOIN infinitystone_group ON' + \

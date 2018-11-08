@@ -108,19 +108,25 @@ class Elements(object):
                    tag='services')
 
     def list_elements(self, req, resp):
-        sql = 'SELECT * FROM infinitystone_element'
-        context = True
+        sql = 'SELECT * FROM infinitystone_element WHERE domain '
         vals = []
-        if not req.context_domain:
-            context = False
-            if req.context_tenant_id:
-                sql += ' WHERE tenant_id=?'
-                vals.append(req.context_tenant_id)
+
+        if req.context_domain:
+            sql += '= ?'
+            vals.append(req.context_domain)
+        else:
+            sql += 'is NULL'
+
+        if req.context_tenant_id:
+            sql += ' AND tenant_id=?'
+            vals.append(req.context_tenant_id)
+        else:
+            sql += ' AND tenant_id IS NULL'
+
         with db() as conn:
             elements = conn.execute(sql, vals).fetchall()
 
-        return raw_list(req, elements, rows=len(elements), context=context)
-
+        return raw_list(req, elements, rows=len(elements), context=False)
 
     def add_element(self, req, resp, eid=None):
         element = obj(req, infinitystone_element)
