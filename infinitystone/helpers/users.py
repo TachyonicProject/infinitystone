@@ -27,15 +27,42 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from infinitystone.utils.auth import authorize
+
+from luxon import db
+from luxon.utils.sql import build_where, build_like
+from luxon.utils.password import valid as is_valid_password
+from luxon.utils.cast import to_list
+from luxon.exceptions import AccessDeniedError
+from infinitystone.models.users import infinitystone_user
+from luxon.helpers.api import sql_list, obj
+from luxon import constants as const
+from luxon.utils.password import hash
 
 
-class MySQL(object):
-    def password(self, username, domain, credentials):
-        try:
-            password = credentials['password']
-        except KeyError:
-            raise ValueError("No 'password' provided in 'credentials'")
+def hash_password(password, tag):
+    if tag == 'tachyonic':
+        # DEFAULT BLOWFISH BCRYPT
+        return hash(password)
+    else:
+        # DEFAULT CRYPT SHA512
+        return hash(password, const.SHA512)
 
-        authorize('tachyonic', username, password, domain)
-        return True
+
+def get_user_id(tag, username, domain=None):
+    with db() as conn:
+        values = [tag, username, ]
+        sql = 'SELECT id FROM infinitystone_user'
+        sql += ' WHERE'
+        sql += ' tag = %s'
+        sql += ' AND username = %s'
+        if domain is not None:
+            sql += ' AND domain = %s'
+            values.append(domain)
+        else:
+            sql += ' AND domain IS NULL'
+        result = conn.execute(sql,
+                              values).fetchall()
+        if len(result) > 0:
+            return result[0]['id']
+        else:
+            raise ValueError('User not found')

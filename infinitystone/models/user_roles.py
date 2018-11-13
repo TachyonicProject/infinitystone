@@ -54,12 +54,17 @@ class infinitystone_user_role(SQLModel):
     domain = SQLModel.Fqdn(internal=True)
     tenant_id = SQLModel.String()
     user_id = SQLModel.Uuid()
+    user_role_index = SQLModel.Index(user_id, domain, tenant_id)
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     unique_tenant_role = SQLModel.UniqueIndex(domain, role_id, tenant_id, user_id)
-    user_role_id_ref = SQLModel.ForeignKey(role_id, infinitystone_role.id)
-    user_role_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
-    user_role_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
-    user_roles = SQLModel.Index(domain, tenant_id)
-    user_roles_tenant = SQLModel.Index(tenant_id)
+    user_id_index = SQLModel.Index(user_id, domain, tenant_id)
+    user_role_id_ref = SQLModel.ForeignKey(role_id, infinitystone_role.id,
+                                           on_delete='RESTRICT')
+    user_role_domain_ref = SQLModel.ForeignKey(domain,
+                                               infinitystone_domain.name,
+                                               on_delete='RESTRICT',
+                                               on_update='RESTRICT')
+    user_role_tenant_ref = SQLModel.ForeignKey(tenant_id,
+                                               infinitystone_tenant.id)
     primary_key = id
     db_default_rows = USER_ROLES

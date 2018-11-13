@@ -41,5 +41,7 @@ class infinitystone_virtual(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     domain = SQLModel.Fqdn(internal=True)
     name = SQLModel.String(max_length=64, null=False)
-    virtual_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
+    virtual_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name,
+                                             on_update='RESTRICT',
+                                             on_delete='RESTRICT')
     primary_key = id

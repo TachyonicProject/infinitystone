@@ -27,31 +27,15 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from luxon import g
-from luxon import register
-from luxon import router
-
 from infinitystone.helpers.auth import authorize
-from infinitystone.helpers.users import get_user_id
 
 
-@register.resources()
-class External(object):
-    """User Authentication for External Service.
-    """
-    def __init__(self):
-        self.realm = 'tachyonic'
-        router.add('POST', '/v1/external', self.auth)
-        router.add('POST', '/v1/external/{tag}', self.auth)
+class SQL(object):
+    def password(self, username, domain, credentials):
+        try:
+            password = credentials['password']
+        except KeyError:
+            raise ValueError("No 'password' provided in 'credentials'")
 
-    def auth(self, req, resp, tag='radius'):
-        credentials = req.json
-        username = credentials.get('username')
-        password = credentials.get('password')
-        domain = credentials.get('domain')
-        authorize(tag, username, password, domain)
-        user_id = get_user_id(tag, username, domain)
-        response = {"username": username,
-                    "domain": domain}
-
-        return response
+        authorize('tachyonic', username, password, domain)
+        return True

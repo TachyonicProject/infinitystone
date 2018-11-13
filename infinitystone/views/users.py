@@ -40,15 +40,13 @@ from infinitystone.models.tenants import infinitystone_tenant
 from infinitystone.models.user_groups import infinitystone_user_group
 from infinitystone.models.user_attrs import infinitystone_user_attr
 from infinitystone.models.user_roles import infinitystone_user_role
-from infinitystone.utils.auth import (get_user_roles,
-                                      get_role_id,
-                                      domains,
-                                      tenants,
-                                      tenant_or_sub,
-                                      get_sub_tenants,
-                                      hash_password,
-                                      get_user_groups,
-                                      get_all_roles)
+from infinitystone.helpers.roles import (get_user_roles,
+                                         get_role_id,
+                                         get_all_roles)
+from infinitystone.helpers.tenants import get_sub_tenants
+from infinitystone.helpers.users import hash_password
+from infinitystone.helpers.groups import get_user_groups
+
 from infinitystone.lib.avps import avps
 
 from luxon import GetLogger
@@ -213,6 +211,16 @@ class Users(object):
                     return get_all_roles()
                 elif user_role['role'] not in roles:
                         roles.append(role)
+
+            elif domain is None and tenant_id is not None:
+                # Domain level Tenant Roles
+                if (user_role['domain'] is None and
+                        user_role['tenant_id'] in tenants):
+                    if user_role['role'] == 'Root':
+                        return get_all_roles()
+                    elif user_role['role'] not in roles:
+                            roles.append(role)
+
             elif domain is not None and tenant_id is not None:
                 # Domain level Tenant Roles
                 if (user_role['domain'] == domain and
@@ -226,15 +234,17 @@ class Users(object):
 
     def access(self, req, resp, domain=None, tenant_id=None):
         user_roles = self._get_roles(req)
+        if domain == 'None':
+            domain = None
+
         roles = self._access(user_roles, domain, tenant_id)
         for item, role in enumerate(roles):
             roles[item] = { 'role': role }
-        return raw_list(req, roles, rows=len(roles))
+        return raw_list(req, roles, sql=False, context=False)
 
     def get_roles(self, req, resp, user_id=None):
         roles = self._get_roles(req, user_id)
-
-        return raw_list(req, roles, rows=len(roles), context=False)
+        return raw_list(req, roles, sql=False, context=False)
 
     def set_role(self, req, resp, user_id,
                   role, domain=None, tenant_id=None):
@@ -279,7 +289,7 @@ class Users(object):
         user.sql_id(user_id)
         validate_access(req, user, tag='radius')
         user_groups = get_user_groups(user_id)
-        return raw_list(req, user_groups, rows=len(user_groups))
+        return raw_list(req, user_groups, sql=False)
 
     def add_group(self, req, resp, user_id):
         user = infinitystone_user()
@@ -322,4 +332,4 @@ class Users(object):
         attr.commit()
 
     def avps(self, req, resp):
-        return raw_list(req, avps, rows=len(avps))
+        return raw_list(req, avps)

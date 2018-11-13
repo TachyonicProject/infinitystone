@@ -1,2 +1,2 @@
-from infinitystone.auth.mysql import MySQL
+from infinitystone.auth.sql import SQL
 from infinitystone.auth.example import Example

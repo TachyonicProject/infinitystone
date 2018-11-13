@@ -32,10 +32,10 @@ from luxon import register
 from luxon import router
 from luxon.utils.imports import get_class
 
-from infinitystone.utils.auth import (localize,
-                                      get_tenant_domain,
-                                      get_user_id,
-                                      get_context_roles)
+from infinitystone.helpers.auth import localize
+from infinitystone.helpers.users import get_user_id
+from infinitystone.helpers.roles import get_context_roles
+from infinitystone.helpers.tenants import get_tenant_domain
 
 
 @register.resources()

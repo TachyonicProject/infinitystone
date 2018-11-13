@@ -31,8 +31,9 @@ from luxon import register
 from luxon import router
 from luxon.helpers.api import sql_list, obj
 from luxon import db
+from luxon.helpers.api import raw_list, search_params
 
-from infinitystone.utils.auth import tenants
+from infinitystone.helpers.tenants import get_tenants
 from infinitystone.models.tenants import infinitystone_tenant
 
 
@@ -45,6 +46,8 @@ class Tenants(object):
                    tag='login')
         router.add('GET', '/v1/tenants/{domain}', self.tenants,
                    tag='login')
+        router.add('GET', '/v1/tenants/{domain}/{tenant_id}', self.tenants,
+                   tag='login')
         router.add('POST', '/v1/tenant', self.create,
                    tag='tenants:admin')
         router.add(['PUT', 'PATCH'], '/v1/tenant/{id}', self.update,
@@ -55,8 +58,31 @@ class Tenants(object):
     def tenant(self, req, resp, id):
         return obj(req, infinitystone_tenant, sql_id=id)
 
-    def tenants(self, req, resp, domain=None):
-        return tenants(req, domain)
+    def tenants(self, req, resp, domain=None, tenant_id=None):
+        limit = int(req.query_params.get('limit', 10))
+        page = int(req.query_params.get('page', 1))
+
+        if tenant_id is None:
+            tenant_id = req.context_tenant_id
+
+        if not domain:
+            domain = req.context_domain
+        elif domain == 'None':
+            # Special None value for UI Role assignment...
+            domain = None
+
+        search = {}
+        for field, value in search_params(req):
+            search['infinitystone_tenant.' + field] = value
+
+
+        results = get_tenants(req.credentials.user_id,
+                              domain=domain,
+                              tenant_id=tenant_id,
+                              page=page,
+                              limit=limit * 2, search=search)
+
+        return raw_list(req, results, limit=limit, context=False, sql=True)
 
     def create(self, req, resp):
         tenant = obj(req, infinitystone_tenant)

@@ -50,6 +50,7 @@ class infinitystone_nas(SQLModel):
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     nas_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
     nas_virtual_ref = SQLModel.ForeignKey(virtual_id, infinitystone_virtual.id)
-
+    virtual_index = SQLModel.Index(virtual_id)
+    nas_index = SQLModel.Index(server)
     primary_key = id
     unique_group = SQLModel.UniqueIndex(server)
