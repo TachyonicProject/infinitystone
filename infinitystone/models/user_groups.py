@@ -49,8 +49,13 @@ class infinitystone_user_group(SQLModel):
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     unique_user_group = SQLModel.UniqueIndex(group_id, user_id)
     user_group_id_ref = SQLModel.ForeignKey(group_id, infinitystone_group.id)
-    user_group_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
-    user_group_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
+    user_group_domain_ref = SQLModel.ForeignKey(domain,
+                                                infinitystone_domain.name,
+                                                on_update='RESTRICT',
+                                                on_delete='RESTRICT')
+    user_group_tenant_ref = SQLModel.ForeignKey(tenant_id,
+                                                infinitystone_tenant.id,
+                                                on_delete='RESTRICT')
     group_index = SQLModel.Index(group_id)
     domain_group_index = SQLModel.Index(domain, group_id)
     tenant_group_index = SQLModel.Index(tenant_id, group_id)

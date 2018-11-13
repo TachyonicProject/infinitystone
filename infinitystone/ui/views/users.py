@@ -137,8 +137,7 @@ class Users():
 
         uri = '/v1/user_roles/%s/%s' % (user_id, role,)
 
-        if domain:
-            uri += '/%s' % domain
+        uri += '/%s' % domain
 
         if tenant_id :
             uri += '/%s' % tenant_id

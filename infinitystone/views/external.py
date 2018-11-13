@@ -31,9 +31,8 @@ from luxon import g
 from luxon import register
 from luxon import router
 
-from infinitystone.utils.auth import (authorize,
-                                      get_user_id,
-                                      get_user_groups)
+from infinitystone.helpers.auth import authorize
+from infinitystone.helpers.users import get_user_id
 
 
 @register.resources()
@@ -42,22 +41,17 @@ class External(object):
     """
     def __init__(self):
         self.realm = 'tachyonic'
+        router.add('POST', '/v1/external', self.auth)
         router.add('POST', '/v1/external/{tag}', self.auth)
 
-    def auth(self, req, resp, tag):
+    def auth(self, req, resp, tag='radius'):
         credentials = req.json
         username = credentials.get('username')
         password = credentials.get('password')
         domain = credentials.get('domain')
         authorize(tag, username, password, domain)
         user_id = get_user_id(tag, username, domain)
-        groups = get_user_groups(user_id)
-        group_attrs = ""
-        user_attrs = ""
         response = {"username": username,
-                    "domain": domain,
-                    "groups": groups,
-                    "group_attributes": group_attrs,
-                    "user_attributes": user_attrs}
+                    "domain": domain}
 
         return response

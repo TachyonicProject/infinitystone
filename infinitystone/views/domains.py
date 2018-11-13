@@ -30,12 +30,12 @@
 from luxon import register
 from luxon import router
 from luxon import GetLogger
-from luxon.helpers.api import sql_list, obj
+from luxon.helpers.api import raw_list, sql_list, obj, search_params
 
 log = GetLogger(__name__)
 
 from infinitystone.models.domains import infinitystone_domain
-from infinitystone.utils.auth import domains
+from infinitystone.helpers.domains import get_domains
 
 
 @register.resources()
@@ -56,7 +56,18 @@ class Domains(object):
         return obj(req, infinitystone_domain, sql_id=id)
 
     def domains(self, req, resp):
-        return domains(req)
+        limit = int(req.query_params.get('limit', 10))
+        page = int(req.query_params.get('page', 1)) 
+
+        search = {}
+        for field, value in search_params(req):
+            search['infinitystone_domain.' + field] = value
+
+        results = get_domains(req.credentials.user_id,
+                              page=page,
+                              limit=limit * 2, search=search)
+
+        return raw_list(req, results, limit=limit, context=False, sql=True)
 
     def create(self, req, resp):
         domain = obj(req, infinitystone_domain)
