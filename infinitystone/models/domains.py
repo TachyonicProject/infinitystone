@@ -45,7 +45,7 @@ class infinitystone_domain(SQLModel):
     description = SQLModel.Text()
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)
+    name_search = SQLModel.Index(name)
     primary_key = id
     unique_domain = SQLModel.UniqueIndex(name)
     db_default_rows = DOMAINS
-    domains = SQLModel.Index(name)

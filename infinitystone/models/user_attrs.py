@@ -49,7 +49,10 @@ class infinitystone_user_attr(SQLModel):
     ctx = SQLModel.Enum('reply', 'check')
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     user_attr_ref = SQLModel.ForeignKey(user_id, infinitystone_user.id)
-    user_attr_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
+    user_attr_domain_ref = SQLModel.ForeignKey(domain,
+                                               infinitystone_domain.name,
+                                               on_update='RESTRICT',
+                                               on_delete='RESTRICT')
     user_attr_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
     user_attrs = SQLModel.Index(user_id)
     user_attrs_domain = SQLModel.Index(domain, user_id)

@@ -2,6 +2,9 @@
 function reset_role(e) {
     $('#role_add').val(null).trigger('change');
     domain = $('#role_add_domain').val();
+    if (domain == '') {
+        domain = 'None'
+    }
     tenant_id = $('#role_add_tenant_id').val();
     $('#role_add').attr('data-url','/v1/access/' + domain + '/' + tenant_id);
 }

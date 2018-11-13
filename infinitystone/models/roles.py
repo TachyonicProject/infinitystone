@@ -57,4 +57,3 @@ class infinitystone_role(SQLModel):
     primary_key = id
     unique_role = SQLModel.UniqueIndex(name)
     db_default_rows = ROLES
-    roles = SQLModel.Index(name)

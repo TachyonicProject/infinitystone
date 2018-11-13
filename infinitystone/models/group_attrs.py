@@ -48,5 +48,8 @@ class infinitystone_group_attr(SQLModel):
     ctx = SQLModel.Enum('reply', 'check')
     creation_time = SQLModel.DateTime(readonly=True, default=now)
     group_attr_ref = SQLModel.ForeignKey(group_id, infinitystone_group.id)
-    group_attr_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
+    group_attr_domain_ref = SQLModel.ForeignKey(domain,
+                                                infinitystone_domain.name,
+                                                on_update='RESTRICT',
+                                                on_delete='RESTRICT')
     primary_key = id

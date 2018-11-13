@@ -27,32 +27,32 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-from uuid import uuid4
 
-from luxon import register
-from luxon import SQLModel
-from luxon.utils.timezone import now
+from luxon import db
+from luxon.utils.sql import build_where, build_like
 
-from infinitystone.models.domains import infinitystone_domain
-from infinitystone.models.tenants import infinitystone_tenant
-from infinitystone.models.users import infinitystone_user
 
-@register.model()
-class infinitystone_user_session(SQLModel):
-    id = SQLModel.Uuid(default=uuid4, internal=True)
-    domain = SQLModel.Fqdn(internal=True)
-    tenant_id = SQLModel.String()
-    user_id = SQLModel.Uuid()
-    session_id = SQLModel.String()
-    login = SQLModel.DateTime(readonly=True, default=now)
-    login_from = SQLModel.String() 
-    login_source = SQLModel.String()
-    value = SQLModel.String()
-    user_session_ref = SQLModel.ForeignKey(user_id, infinitystone_user.id)
-    user_session_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name)
-    user_session_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id)
-    user_domain_index = SQLModel.Index(domain)
-    user_index = SQLModel.Index(user_id)
-    user_domain_session = SQLModel.Index(domain, user_id)
-    user_domain_tenant_index = SQLModel.Index(domain, tenant_id, user_id)
-    primary_key = id
+def get_domains(user_id, page=1, limit=10, search=None):
+    start = (page - 1) * limit
+
+    sql = "SELECT DISTINCT infinitystone_domain.id AS id"
+    sql += " ,infinitystone_domain.name AS name"
+    sql += " FROM infinitystone_domain"
+    sql += " INNER JOIN infinitystone_user_role"
+    sql += " ON (infinitystone_user_role.domain ="
+    sql += " infinitystone_domain.name)"
+    sql += " OR (infinitystone_user_role.domain IS null"
+    sql += " and infinitystone_user_role.tenant_id IS null)"
+    where={"infinitystone_user_role.user_id": user_id}
+
+    where, values = build_where(**where)
+    if search:
+        where2, values2 = build_like('OR', **search)
+        if values2:
+            where += " AND " + where2
+            values += values2
+
+    with db() as conn:
+        return conn.execute(sql + 'WHERE ' + where +
+                            ' LIMIT %s, %s' % (start, limit,),
+                            values).fetchall()
