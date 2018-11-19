@@ -99,7 +99,6 @@ class Users():
     def edit(self, req, resp, id):
         if req.method == 'POST':
             data = req.form_dict
-            data['tag'] = "tachyonic"
             req.context.api.execute('PUT', '/v1/user/%s' % id,
                                    data=data,
                                    endpoint='identity')
@@ -118,7 +117,6 @@ class Users():
     def add(self, req, resp):
         if req.method == 'POST':
             data = req.form_dict
-            data['tag'] = "tachyonic"
             response = req.context.api.execute('POST', '/v1/user',
                                                data=data,
                                                endpoint='identity')

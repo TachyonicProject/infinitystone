@@ -37,5 +37,5 @@ class SQL(object):
         except KeyError:
             raise ValueError("No 'password' provided in 'credentials'")
 
-        authorize('tachyonic', username, password, domain)
+        authorize(username, password, domain)
         return True

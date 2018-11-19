@@ -35,7 +35,6 @@ from luxon.utils.timezone import now
 
 class infinitystone_user(Model):
     id = Model.Uuid(default=uuid4, internal=True)
-    tag = Model.String(hidden=True, max_length=30, null=False)
     domain = Model.Fqdn(internal=True)
     tenant_id = Model.Uuid(internal=True)
     username = Model.Username(placeholder="john", max_length=100, null=False)

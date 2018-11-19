@@ -37,7 +37,7 @@ from infinitystone.ui.models.domains import infinitystone_domain
 
 g.nav_menu.add('/System/Domains',
                href='/system/domains',
-               tag='admin',
+               tag='domains:admin',
                feather='at-sign')
 
 

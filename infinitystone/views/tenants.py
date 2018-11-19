@@ -67,9 +67,6 @@ class Tenants(object):
 
         if not domain:
             domain = req.context_domain
-        elif domain == 'None':
-            # Special None value for UI Role assignment...
-            domain = None
 
         search = {}
         for field, value in search_params(req):

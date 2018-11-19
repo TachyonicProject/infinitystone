@@ -79,7 +79,8 @@ def get_tenants(user_id=None, domain=None, tenant_id=None,
     sql += " infinitystone_tenant.id as id,"
     sql += " infinitystone_tenant.name as name,"
     sql += " infinitystone_tenant.crm_id as crm_id,"
-    sql += " infinitystone_tenant.domain as domain"
+    sql += " infinitystone_tenant.domain as domain,"
+    sql += " infinitystone_tenant.tenant_id as tenant_id"
     sql += " FROM infinitystone_tenant"
     sql += " INNER JOIN infinitystone_user_role"
     sql += " ON"
@@ -115,7 +116,10 @@ def get_tenants(user_id=None, domain=None, tenant_id=None,
     if user_id:
         where['infinitystone_user_role.user_id'] = user_id
     if domain:
-        where['infinitystone_tenant.domain'] = domain
+        if domain.lower() == 'none':
+            where['infinitystone_tenant.domain'] = None
+        else:
+            where['infinitystone_tenant.domain'] = domain
     if tenant_id:
         where2 = {}
         where2['infinitystone_tenant.tenant_id'] = tenant_id

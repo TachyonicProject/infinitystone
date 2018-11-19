@@ -36,25 +36,14 @@ from luxon.exceptions import AccessDeniedError
 from infinitystone.models.users import infinitystone_user
 from luxon.helpers.api import sql_list, obj
 from luxon import constants as const
-from luxon.utils.password import hash
 
 
-def hash_password(password, tag):
-    if tag == 'tachyonic':
-        # DEFAULT BLOWFISH BCRYPT
-        return hash(password)
-    else:
-        # DEFAULT CRYPT SHA512
-        return hash(password, const.SHA512)
-
-
-def get_user_id(tag, username, domain=None):
+def get_user_id(username, domain=None):
     with db() as conn:
-        values = [tag, username, ]
+        values = [username, ]
         sql = 'SELECT id FROM infinitystone_user'
         sql += ' WHERE'
-        sql += ' tag = %s'
-        sql += ' AND username = %s'
+        sql += ' username = %s'
         if domain is not None:
             sql += ' AND domain = %s'
             values.append(domain)

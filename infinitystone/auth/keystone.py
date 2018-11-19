@@ -28,30 +28,23 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import g
-from luxon import register
-from luxon import router
+from psychokinetic.openstack import Openstack
 
-from infinitystone.helpers.auth import authorize
-from infinitystone.helpers.users import get_user_id
+class Keystone(object):
+    def password(self, username, domain, credentials):
+        
+        keystone_url = g.app.config.get('auth', 'keystone_url')
+        region = g.app.config.get('auth', 'region', fallback='RegionOne')
 
+        os = Openstack(keystone_url=keystone_url, region=region)
+        try:
+            password = credentials['password']
+        except KeyError:
+            raise ValueError("No 'password' provided in 'credentials'")
 
-@register.resources()
-class External(object):
-    """User Authentication for External Service.
-    """
-    def __init__(self):
-        self.realm = 'tachyonic'
-        router.add('POST', '/v1/external', self.auth)
-        router.add('POST', '/v1/external/{tag}', self.auth)
+        if not domain:
+            raise ValueError("No 'domain' provided")
 
-    def auth(self, req, resp, tag='radius'):
-        credentials = req.json
-        username = credentials.get('username')
-        password = credentials.get('password')
-        domain = credentials.get('domain')
-        authorize(tag, username, password, domain)
-        user_id = get_user_id(tag, username, domain)
-        response = {"username": username,
-                    "domain": domain}
+        os.identity.authenticate(username, password, domain)
 
-        return response
+        return True
