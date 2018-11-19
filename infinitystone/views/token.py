@@ -55,7 +55,6 @@ class Token(object):
         openssl req  -nodes -new -x509  -keyout token.key -out token.cert
     """
     def __init__(self):
-        self.realm = 'tachyonic'
         router.add('GET', '/v1/token', self.get)
         router.add('POST', '/v1/token', self.post)
         router.add('PATCH', '/v1/token', self.patch)
@@ -86,9 +85,9 @@ class Token(object):
             raise ValueError("Invalid 'credentials' provided")
 
         # Creat User locally if not existing
-        localize(self.realm, username, domain)
+        localize(username, domain)
         # Get User_id
-        user_id = get_user_id(self.realm, username, domain)
+        user_id = get_user_id(username, domain)
         # Get Roles
         global_roles = get_context_roles(user_id, None)
         domain_roles = get_context_roles(user_id, domain)
@@ -106,10 +105,6 @@ class Token(object):
         if tenant_id is not None:
             req.credentials.domain = get_tenant_domain(tenant_id)
             req.credentials.tenant_id = tenant_id
-            default_role = g.app.config.get(
-                'identity', 'default_tenant_role',
-                fallback='Customer')
-            req.credentials.roles = default_role
             req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id,
                                                       req.credentials.domain)

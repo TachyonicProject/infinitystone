@@ -40,6 +40,7 @@ class Endpoints(object):
         router.add('GET', '/v1/endpoint/{id}', self.endpoint,
                    tag='endpoints:view')
         router.add('GET', '/v1/endpoints', self.endpoints)
+        router.add('GET', '/v1/regions', self.regions)
         router.add('POST', '/v1/endpoint', self.create,
                    tag='endpoints:admin')
         router.add(['PUT', 'PATCH'], '/v1/endpoint/{id}', self.update,
@@ -49,6 +50,10 @@ class Endpoints(object):
 
     def endpoint(self, req, resp, id):
         return obj(req, infinitystone_endpoint, sql_id=id)
+
+    def regions(self, req, resp):
+        return sql_list(req, 'infinitystone_endpoint', ('region',),
+                        group_by='region')
 
     def endpoints(self, req, resp):
         return sql_list(req, 'infinitystone_endpoint', ('id', 'name', 'interface',

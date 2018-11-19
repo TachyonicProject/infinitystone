@@ -27,51 +27,46 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
-
+from luxon import g
 from luxon import db
 from luxon.utils.password import valid as is_valid_password
 from luxon.exceptions import AccessDeniedError
+from infinitystone.models.users import infinitystone_user
 
+def localize(username, domain):
+    default_role = g.app.config.get(
+        'identity', 'default_tenant_role',
+        fallback='Customer')
 
-def localize(tag, username, domain):
     with db() as conn:
-        values = [tag, username, ]
+        values = [username, ]
         sql = 'SELECT username FROM infinitystone_user'
         sql += ' WHERE'
-        sql += ' tag = %s'
-        sql += ' AND username = %s'
+        sql += ' username = %s'
         if domain is not None:
             sql += ' AND domain = %s'
             values.append(domain)
         else:
             sql += ' AND domain IS NULL'
         result = conn.execute(sql,
-                              values).fetchall()
+                              values).fetchone()
 
-        if len(result) == 0:
-            if domain is not None:
-                conn.execute('INSERT INTO infinitystone_user' +
-                             ' (tag, domain, username)' +
-                             ' VALUES' +
-                             ' (%s, %s, %s)',
-                             (tag, domain, username))
-            else:
-                conn.execute('INSERT INTO infinitystone_user' +
-                             ' (tag, username)' +
-                             ' VALUES' +
-                             ' (%s, %s)',
-                             (tag, username))
+        if not result:
+            user_obj = infinitystone_user()
+            user_obj['username'] = username
+            if domain:
+                user_obj['domain'] = domain
 
-            conn.commit()
+            user_obj.commit()
+            user_id = user_obj.id
+            
 
-
-def authorize(tag, username=None, password=None, domain=None):
+def authorize(username=None, password=None, domain=None):
     with db() as conn:
-        values = [tag, username, ]
+        values = [username, ]
         sql = 'SELECT username, password FROM infinitystone_user'
         sql += ' WHERE'
-        sql += ' tag = %s'
-        sql += ' AND username = %s'
+        sql += ' username = %s'
         if domain is not None:
             sql += ' AND domain = %s'
             values.append(domain)

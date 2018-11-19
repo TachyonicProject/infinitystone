@@ -44,7 +44,7 @@ class Domains(object):
         router.add('GET', '/v1/domain/{id}', self.domain,
                    tag='login')
         router.add('GET', '/v1/domains', self.domains,
-                   tag='domains:view')
+                   tag='login')
         router.add('POST', '/v1/domain', self.create,
                    tag='domains:admin')
         router.add(['PUT', 'PATCH'], '/v1/domain/{id}', self.update,
