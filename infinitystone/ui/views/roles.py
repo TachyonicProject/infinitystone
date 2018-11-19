@@ -37,7 +37,7 @@ from infinitystone.ui.models.roles import infinitystone_role
 
 g.nav_menu.add('/System/Roles',
                href='/system/roles',
-               tag='admin',
+               tag='infrastructure:admin',
                feather='shield')
 
 
