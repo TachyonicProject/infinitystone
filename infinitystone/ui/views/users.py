@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,8 @@ from luxon import router
 from luxon import register
 from luxon import render_template
 from luxon.utils.bootstrap4 import form
-from luxon.utils.html5 import select
 
 from infinitystone.ui.models.users import infinitystone_user
-from infinitystone.ui.models.user_roles import infinitystone_user_role
 
 g.nav_menu.add('/Accounts/Users',
                href='/accounts/users',
@@ -100,8 +98,8 @@ class Users():
         if req.method == 'POST':
             data = req.form_dict
             req.context.api.execute('PUT', '/v1/user/%s' % id,
-                                   data=data,
-                                   endpoint='identity')
+                                    data=data,
+                                    endpoint='identity')
             req.method = 'GET'
             return self.edit(req, resp, id)
         else:
@@ -112,7 +110,6 @@ class Users():
                                    form=html_form,
                                    id=id,
                                    view="Edit User")
-
 
     def add(self, req, resp):
         if req.method == 'POST':
@@ -135,13 +132,14 @@ class Users():
 
         uri = '/v1/user_roles/%s/%s' % (user_id, role,)
 
-        uri += '/%s' % domain
+        if domain:
+            uri += '/%s' % domain
 
-        if tenant_id :
-            uri += '/%s' % tenant_id
+            if tenant_id:
+                uri += '/%s' % tenant_id
 
-        response = req.context.api.execute('POST', uri)
+        req.context.api.execute('POST', uri)
 
     def rm_role(self, req, resp, user_id, role_id):
         uri = '/v1/user_roles/%s/%s' % (user_id, role_id,)
-        response = req.context.api.execute('DELETE', uri, endpoint='identity')
+        req.context.api.execute('DELETE', uri, endpoint='identity')
