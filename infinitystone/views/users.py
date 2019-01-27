@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ from luxon import db
 from luxon.utils.sql import build_where
 from luxon.helpers.access import validate_access
 from luxon.helpers.api import raw_list, sql_list, obj
-from luxon.exceptions import ValidationError, DuplicateError, AccessDeniedError
+from luxon.exceptions import AccessDeniedError
 
 from infinitystone.models.users import infinitystone_user
 from infinitystone.models.tenants import infinitystone_tenant
@@ -48,6 +48,7 @@ from luxon.utils.password import hash
 from luxon import GetLogger
 
 log = GetLogger(__name__)
+
 
 @register.resources()
 class Users(object):
@@ -126,7 +127,6 @@ class Users(object):
         user = obj(req, infinitystone_user, sql_id=id)
         user.commit()
 
-
     def _get_roles(self, req, user_id=None):
         if not user_id:
             user_id = req.credentials.user_id
@@ -200,7 +200,7 @@ class Users(object):
 
         roles = self._access(user_roles, domain, tenant_id)
         for item, role in enumerate(roles):
-            roles[item] = { 'role': role }
+            roles[item] = {'role': role}
         return raw_list(req, roles, sql=False, context=False)
 
     def get_roles(self, req, resp, user_id=None):
@@ -208,7 +208,7 @@ class Users(object):
         return raw_list(req, roles, sql=False, context=False)
 
     def set_role(self, req, resp, user_id,
-                  role, domain=None, tenant_id=None):
+                 role, domain=None, tenant_id=None):
         role_id = get_role_id(role)
         current_roles = self._get_roles(req)
 
@@ -223,14 +223,19 @@ class Users(object):
         # Check if access to role
         access = self._access(current_roles, domain, tenant_id)
         if role not in access:
-            raise AccessDeniedError(access)
-            raise AccessDeniedError('Not sufficiant credentials to assign role')
+            raise AccessDeniedError(
+                'Not sufficiant credentials to assign role')
 
         model = infinitystone_user_role()
         model['role_id'] = role_id
         model['user_id'] = user_id
-        model['domain'] = domain
-        model['tenant_id'] = tenant_id
+
+        if domain:
+            model['domain'] = domain
+
+            if tenant_id:
+                model['tenant_id'] = tenant_id
+
         model.commit()
 
     def rm_role(self, req, resp, user_id, role_id):
