@@ -33,7 +33,6 @@ from luxon import register
 from luxon import render_template
 from luxon.utils.bootstrap4 import form
 from luxon.utils.pkg import EntryPoints
-from luxon.helpers.api import raw_list
 from luxon.exceptions import FieldMissing
 
 from infinitystone.ui.models.elements import infinitystone_element
@@ -55,7 +54,7 @@ def render_interface(eid, interface, view, data=None, ro=False):
 
 
 @register.resources()
-class Elements():
+class Elements:
     def __init__(self):
         router.add('GET',
                    '/infrastructure/elements',
@@ -111,7 +110,6 @@ class Elements():
                    '/infrastructure/interfaces/{eid}/{interface}',
                    self.view_interface,
                    tag='infrastructure:admin')
-
 
     def list(self, req, resp):
         return render_template('infinitystone.ui/elements/list.html',
@@ -183,7 +181,8 @@ class Elements():
                                interface=interface)
 
     def add_interface(self, req, resp, eid, interface):
-        req.context.api.execute('POST', '/v1/element/%s/%s' % (eid, interface,),
+        req.context.api.execute('POST',
+                                '/v1/element/%s/%s' % (eid, interface,),
                                 data=req.form_dict)
         req.method = 'GET'
         return self.edit(req, resp, eid)
@@ -197,15 +196,16 @@ class Elements():
     def edit_interface(self, req, resp, eid, interface):
         e_int = req.context.api.execute('GET',
                                         '/v1/element/%s/%s' % (
-                                        eid, interface,),
+                                            eid, interface,),
                                         data=req.form_dict)
         return render_interface(eid, interface, view="Edit",
                                 data=e_int.json['metadata'])
 
     def view_interface(self, req, resp, eid, interface):
         e_int = req.context.api.execute('GET',
-                                    '/v1/element/%s/%s' % (eid, interface,),
-                                    data=req.form_dict)
+                                        '/v1/element/%s/%s' % (
+                                        eid, interface,),
+                                        data=req.form_dict)
         return render_interface(eid, interface, view="View",
                                 data=e_int.json['metadata'], ro=True)
         element_interface = EntryPoints('netrino_elements')[interface]
@@ -218,5 +218,6 @@ class Elements():
                                interface=interface)
 
     def delete_interface(self, req, resp, eid, interface):
-        req.context.api.execute('DELETE', '/v1/element/%s/%s' % (eid, interface,),
+        req.context.api.execute('DELETE',
+                                '/v1/element/%s/%s' % (eid, interface,),
                                 data=req.form_dict)
