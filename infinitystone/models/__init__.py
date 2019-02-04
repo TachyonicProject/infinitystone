@@ -4,3 +4,6 @@ from infinitystone.models.roles import infinitystone_role
 from infinitystone.models.tenants import infinitystone_tenant
 from infinitystone.models.users import infinitystone_user
 from infinitystone.models.user_roles import infinitystone_user_role
+from infinitystone.models.elements import infinitystone_element
+from infinitystone.models.elements import infinitystone_element_interface
+from infinitystone.models.elements import infinitystone_element_tag
