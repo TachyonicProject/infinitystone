@@ -33,6 +33,7 @@ from luxon import register
 from luxon import SQLModel
 from luxon.utils.timezone import now
 
+
 @register.model()
 class infinitystone_element(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)

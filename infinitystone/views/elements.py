@@ -37,7 +37,7 @@ from luxon.utils.pkg import EntryPoints
 from luxon.exceptions import NotFoundError
 from luxon.exceptions import SQLOperationalError
 from luxon.exceptions import SQLProgrammingError
-from luxon.helpers.api import raw_list, sql_list, obj
+from luxon.helpers.api import raw_list, obj
 from luxon.helpers.access import validate_access
 from luxon.utils.cast import to_list
 
@@ -57,6 +57,7 @@ def get_related(eid, table, where):
         related = to_list(crsr.fetchall())
 
     return related
+
 
 def get_element_interface(eid, interface):
     with db() as conn:
@@ -203,14 +204,14 @@ class Elements(object):
 
         with db() as conn:
             children = conn.execute("SELECT id, name, enabled, creation_time"
-                                      " FROM infinitystone_element"
-                                      " WHERE parent_id = %s", eid).fetchall()
+                                    " FROM infinitystone_element"
+                                    " WHERE parent_id = %s", eid).fetchall()
             interfaces = conn.execute("SELECT interface,metadata,creation_time"
                                       " FROM infinitystone_element_interface"
                                       " WHERE element_id = %s", eid).fetchall()
             tags = conn.execute("SELECT name"
-                                      " FROM infinitystone_element_tag"
-                                      " WHERE element_id = %s", eid).fetchall()
+                                " FROM infinitystone_element_tag"
+                                " WHERE element_id = %s", eid).fetchall()
             try:
                 parent = conn.execute("SELECT name FROM infinitystone_element "
                                       "WHERE id=%s",
@@ -225,12 +226,10 @@ class Elements(object):
         to_return['interfaces'] = interfaces
         to_return['tags'] = tags
 
-
         crypto = Crypto()
         for interfaces in to_return['interfaces']:
             interfaces_metadata = crypto.decrypt(interfaces['metadata'])
             interfaces['metadata'] = js.loads(interfaces_metadata)
-
 
         return to_return
 
@@ -262,7 +261,7 @@ class Elements(object):
         return self.view_interface(req, resp, eid, interface)
 
     def view_interface(self, req, resp, eid, interface):
-        return get_element_interface(eid, interface )
+        return get_element_interface(eid, interface)
 
     def update_interface(self, req, resp, eid, interface):
         # In case not all fields was submitted,
@@ -275,7 +274,7 @@ class Elements(object):
         model_json = crypto.encrypt(model.json)
         with db() as conn:
             conn.execute('UPDATE infinitystone_element_interface' +
-                         ' SET metadata = %s' 
+                         ' SET metadata = %s'
                          ' WHERE element_id = %s' +
                          ' AND interface = %s', (model_json,
                                                  eid, interface,))
@@ -295,7 +294,7 @@ class Elements(object):
             conn.execute('INSERT INTO infinitystone_element_tag' +
                          ' (id, name, element_id)' +
                          ' VALUES' +
-                         ' (%s, %s, %s)', (tag_entry_id,tag, eid))
+                         ' (%s, %s, %s)', (tag_entry_id, tag, eid))
             conn.commit()
             return self.view_element(req, resp, eid)
 
@@ -317,9 +316,9 @@ class Interfaces():
                    tag='infrastructure:view')
 
     def list(self, req, resp):
-        """Lists all the registered netrino_interfaces Entrypoints.
+        """Lists all the registered tachyonic_interfaces Entrypoints.
         """
         interfaces = []
-        for e in EntryPoints('netrino_interfaces'):
+        for e in EntryPoints('tachyonic_interfaces'):
             interfaces.append({'id': e, 'name': e})
         return raw_list(req, interfaces)
