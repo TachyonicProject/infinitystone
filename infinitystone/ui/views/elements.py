@@ -31,6 +31,7 @@ from luxon import g
 from luxon import router
 from luxon import register
 from luxon import render_template
+from luxon import js
 from luxon.utils.bootstrap4 import form
 from luxon.utils.pkg import EntryPoints
 from luxon.exceptions import FieldMissing
@@ -43,14 +44,15 @@ g.nav_menu.add('/Infrastructure/Elements',
                feather='server')
 
 
-def render_interface(eid, interface, view, data=None, ro=False):
-    element_interface = EntryPoints('netrino_elements')[interface]
-    html_form = form(element_interface, data, readonly=ro)
-    return render_template('infinitystone.ui/elements/interface.html',
-                           view='%s %s Interface' % (view, interface,),
+def render_model(ep, eid, model, mtype, view, data=None, ro=False, **kwargs):
+    element_model = EntryPoints(ep)[model]
+    html_form = form(element_model, data, readonly=ro)
+    return render_template('infinitystone.ui/elements/%s.html' % mtype,
+                           view='%s %s %s' % (view, model, mtype),
                            form=html_form,
                            id=eid,
-                           interface=interface)
+                           model=model,
+                           **kwargs)
 
 
 @register.resources()
@@ -62,12 +64,12 @@ class Elements:
                    tag='infrastructure:view')
 
         router.add('GET',
-                   '/infrastructure/elements/{id}',
+                   '/infrastructure/elements/{eid}',
                    self.view,
                    tag='infrastructure:view')
 
         router.add('GET',
-                   '/infrastructure/elements/delete/{id}',
+                   '/infrastructure/elements/delete/{eid}',
                    self.delete,
                    tag='infrastructure:admin')
 
@@ -77,12 +79,12 @@ class Elements:
                    tag='infrastructure:admin')
 
         router.add(('POST', 'GET',),
-                   '/infrastructure/elements/edit/{id}',
+                   '/infrastructure/elements/edit/{eid}',
                    self.edit,
                    tag='infrastructure:admin')
 
         router.add(('GET', 'POST',),
-                   '/infrastructure/elements/{id}/interface',
+                   '/infrastructure/elements/{eid}/interface',
                    self.interface,
                    tag='infrastructure:admin')
 
@@ -111,15 +113,48 @@ class Elements:
                    self.view_interface,
                    tag='infrastructure:admin')
 
+        router.add(('GET', 'POST',),
+                   '/infrastructure/elements/{eid}/attributes',
+                   self.attributes,
+                   tag='infrastructure:admin')
+
+        router.add('POST',
+                   '/infrastructure/elements/{eid}/{category}',
+                   self.add_attributes,
+                   tag='infrastructure:admin')
+
+        router.add('POST',
+                   '/infrastructure/elements/edit/{eid}/{category}',
+                   self.update_attributes,
+                   tag='infrastructure:admin')
+
+        router.add('GET',
+                   '/infrastructure/elements/edit/{eid}/{category}',
+                   self.edit_attributes,
+                   tag='infrastructure:admin')
+
+        router.add('GET',
+                   '/infrastructure/elements/delete/{eid}/{category}',
+                   self.delete_attributes,
+                   tag='infrastructure:admin')
+
     def list(self, req, resp):
         return render_template('infinitystone.ui/elements/list.html',
                                view='Elements')
 
-    def delete(self, req, resp, id):
-        req.context.api.execute('DELETE', '/v1/element/%s' % id)
+    def delete(self, req, resp, eid):
+        req.context.api.execute('DELETE', '/v1/element/%s' % eid)
 
-    def view(self, req, resp, id):
-        element = req.context.api.execute('GET', '/v1/element/%s' % id)
+    def view(self, req, resp, eid):
+        element = req.context.api.execute('GET', '/v1/element/%s' % eid)
+        attrs = {}
+
+        for a in element.json['attributes']:
+            attr_model = EntryPoints('element_attributes')[a['attr_model']]
+            attrs[a['attr_model']] = form(attr_model,
+                                          a['metadata'],
+                                          readonly=True)
+
         parent_name = None
 
         if 'parent' in element.json:
@@ -129,16 +164,18 @@ class Elements:
         return render_template('infinitystone.ui/elements/view.html',
                                view='View Element',
                                form=html_form,
-                               id=id,
+                               id=eid,
+                               attrs=attrs,
                                parent=parent_name)
 
-    def edit(self, req, resp, id):
+    def edit(self, req, resp, eid):
         if req.method == 'POST':
-            req.context.api.execute('PUT', '/v1/element/%s' % id,
+            req.context.api.execute('PUT', '/v1/element/%s' % eid,
                                     data=req.form_dict)
-            return self.view(req, resp, id)
+            return self.view(req, resp, eid)
         else:
-            element = req.context.api.execute('GET', '/v1/element/%s' % id)
+
+            element = req.context.api.execute('GET', '/v1/element/%s' % eid)
 
             parent_name = None
 
@@ -149,7 +186,7 @@ class Elements:
             return render_template('infinitystone.ui/elements/edit.html',
                                    view='Edit Element',
                                    form=html_form,
-                                   id=id,
+                                   id=eid,
                                    parent=parent_name,
                                    parent_id=element.json['parent_id'])
 
@@ -164,21 +201,14 @@ class Elements:
                                    view='Add Element',
                                    form=html_form)
 
-    def interface(self, req, resp, id):
+    def interface(self, req, resp, eid):
         try:
             interface = req.form_dict['interface']
         except KeyError:
             raise FieldMissing('Interface', 'Element Interface',
                                'Please select Interface for Element')
-        return render_interface(id, interface, view="Add")
-        element_interface = EntryPoints('netrino_elements')[interface]
-        html_form = form(element_interface)
-
-        return render_template('infinitystone.ui/elements/interface.html',
-                               view='Add %s Interface' % interface,
-                               form=html_form,
-                               id=id,
-                               interface=interface)
+        return render_model('netrino_elements', eid, interface, 'interface',
+                            view="Add")
 
     def add_interface(self, req, resp, eid, interface):
         req.context.api.execute('POST',
@@ -198,26 +228,75 @@ class Elements:
                                         '/v1/element/%s/%s' % (
                                             eid, interface,),
                                         data=req.form_dict)
-        return render_interface(eid, interface, view="Edit",
-                                data=e_int.json['metadata'])
+        return render_model('netrino_elements', eid, interface, 'interface',
+                            view="Edit", data=e_int.json['metadata'])
 
     def view_interface(self, req, resp, eid, interface):
         e_int = req.context.api.execute('GET',
                                         '/v1/element/%s/%s' % (
-                                        eid, interface,),
-                                        data=req.form_dict)
-        return render_interface(eid, interface, view="View",
-                                data=e_int.json['metadata'], ro=True)
-        element_interface = EntryPoints('netrino_elements')[interface]
-        html_form = form(element_interface, e_int.json['metadata'],
-                         readonly=True)
-        return render_template('infinitystone.ui/elements/interface.html',
-                               view='%s Interface' % interface,
-                               form=html_form,
-                               id=eid,
-                               interface=interface)
+                                            eid, interface,))
+        return render_model('netrino_elements', eid, interface, 'interface',
+                            view="View", data=e_int.json['metadata'], ro=True)
+
 
     def delete_interface(self, req, resp, eid, interface):
         req.context.api.execute('DELETE',
                                 '/v1/element/%s/%s' % (eid, interface,),
                                 data=req.form_dict)
+
+    def attributes(self, req, resp, eid):
+        try:
+            category = req.form_dict['category']
+        except KeyError:
+            raise FieldMissing('Category', 'Element Category',
+                               'Please select Cateopgry for Element')
+        return render_model('element_attributes', eid, category, 'attributes',
+                            view="Add")
+
+    def add_attributes(self, req, resp, eid, category):
+        req.context.api.execute('POST',
+                                '/v1/element/%s/attributes/%s' % (
+                                    eid, category,),
+                                data=req.form_dict)
+        req.method = 'GET'
+        return self.edit(req, resp, eid)
+
+    def update_attributes(self, req, resp, eid, category):
+        req.context.api.execute('PUT',
+                                '/v1/element/%s/attributes/%s' % (
+                                    eid, category,),
+                                data=req.form_dict)
+        req.method = 'GET'
+        return self.edit(req, resp, eid)
+
+    def edit_attributes(self, req, resp, eid, category):
+        e_attr = req.context.api.execute('GET',
+                                        '/v1/element/%s/attributes/%s' % (
+                                            eid, category,)).json
+        return render_model('element_attributes', eid,
+                            e_attr['attr_model'], 'attributes',
+                            view="Edit", data=e_attr['metadata'],
+                            aid = e_attr['id'])
+
+    def delete_attributes(self, req, resp, eid, category):
+        req.context.api.execute('DELETE',
+                                '/v1/element/%s/attributes/%s' % (
+                                eid, category,),
+                                data=req.form_dict)
+
+        element = req.context.api.execute('GET', '/v1/element/%s' % eid)
+
+        parent_name = None
+
+        if 'parent' in element.json:
+            parent_name = element.json['parent']['name']
+
+        html_form = form(infinitystone_element, element.json)
+        return render_template('infinitystone.ui/elements/edit.html',
+                               view='Edit Element',
+                               form=html_form,
+                               id=eid,
+                               parent=parent_name,
+                               parent_id=element.json['parent_id'])
+
+        return self.edit(req, resp, eid)
