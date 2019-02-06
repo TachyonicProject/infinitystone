@@ -60,6 +60,15 @@ class infinitystone_element_interface(SQLModel):
     element_driver = SQLModel.Index(element_id, interface)
     primary_key = id
 
+@register.model()
+class infinitystone_element_attributes(SQLModel):
+    id = SQLModel.Uuid(default=uuid4, internal=True)
+    element_id = SQLModel.Uuid(null=False)
+    attr_model = SQLModel.String(null=False)
+    metadata = SQLModel.LongText()
+    creation_time = SQLModel.DateTime(default=now, readonly=True)
+    em_attr_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
+    primary_key = id
 
 @register.model()
 class infinitystone_element_tag(SQLModel):
@@ -67,7 +76,6 @@ class infinitystone_element_tag(SQLModel):
     name = SQLModel.String(null=False)
     element_id = SQLModel.Uuid(null=False)
     element_tag_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
-    # Need the following in order to be able to insert tag=NULL in
-    # infinitystone's service_template_entry
+    # Need the following in order to be able to insert tag=NULL
     unique_element_tag = SQLModel.UniqueIndex(name)
     primary_key = id

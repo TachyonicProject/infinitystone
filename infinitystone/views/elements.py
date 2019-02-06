@@ -43,6 +43,8 @@ from luxon.utils.cast import to_list
 
 from infinitystone.models.elements import infinitystone_element
 from infinitystone.models.elements import infinitystone_element_interface
+from infinitystone.models.elements import infinitystone_element_attributes
+
 from luxon.helpers.crypto import Crypto
 
 
@@ -128,6 +130,22 @@ class Elements(object):
                    self.delete_tag,
                    tag='services')
 
+        router.add('GET', '/v1/element/{eid}/attributes/{category}',
+                   self.view_attributes,
+                   tag='services')
+
+        router.add('POST', '/v1/element/{eid}/attributes/{category}',
+                   self.add_attributes,
+                   tag='services')
+
+        router.add(['PATCH', 'PUT'], '/v1/element/{eid}/attributes/{category}',
+                   self.update_attributes,
+                   tag='services')
+
+        router.add('DELETE', '/v1/element/{eid}/attributes/{category}',
+                   self.delete_attributes,
+                   tag='services')
+
     def list_elements(self, req, resp):
         sql = 'SELECT * FROM infinitystone_element WHERE domain '
         vals = []
@@ -188,6 +206,22 @@ class Elements(object):
 
         return interfaces
 
+    def _get_attributes(self, req, eid):
+        element = infinitystone_element()
+        element.sql_id(eid)
+        validate_access(req, element)
+
+        attributes = []
+
+        for attrs in get_related(eid, 'infinitystone_element_attributes',
+                                     'element_id'):
+            attrs = {"id": attrs['id'],
+                         "category": attrs['attr_model'],
+                         "metadata": js.loads(attrs['metadata'])}
+            attributes.append(attrs)
+
+        return attributes
+
     def view_element(self, req, resp, eid):
         view = req.query_params.get('view', False)
         if view:
@@ -197,6 +231,9 @@ class Elements(object):
             if view == 'interfaces':
                 interfaces = self._get_interfaces(req, eid)
                 return raw_list(req, interfaces, context=False)
+            if view == 'attributes':
+                attributes = self._get_attributes(req, eid)
+                return raw_list(req, attributes, context=False)
 
         element = obj(req, infinitystone_element, sql_id=eid)
 
@@ -208,6 +245,10 @@ class Elements(object):
                                     " WHERE parent_id = %s", eid).fetchall()
             interfaces = conn.execute("SELECT interface,metadata,creation_time"
                                       " FROM infinitystone_element_interface"
+                                      " WHERE element_id = %s", eid).fetchall()
+            attributes = conn.execute("SELECT attr_model,metadata,"
+                                      " creation_time"
+                                      " FROM infinitystone_element_attributes"
                                       " WHERE element_id = %s", eid).fetchall()
             tags = conn.execute("SELECT name"
                                 " FROM infinitystone_element_tag"
@@ -224,12 +265,16 @@ class Elements(object):
 
         to_return['children'] = children
         to_return['interfaces'] = interfaces
+        to_return['attributes'] = attributes
         to_return['tags'] = tags
 
         crypto = Crypto()
         for interfaces in to_return['interfaces']:
             interfaces_metadata = crypto.decrypt(interfaces['metadata'])
             interfaces['metadata'] = js.loads(interfaces_metadata)
+
+        for attrs in to_return['attributes']:
+            attrs['metadata'] = js.loads(attrs['metadata'])
 
         return to_return
 
@@ -306,6 +351,48 @@ class Elements(object):
             conn.commit()
             return self.view_element(req, resp, eid)
 
+    def view_attributes(self, req, resp, eid, category):
+        obj = infinitystone_element_attributes()
+        obj.sql_id(category)
+        result = obj.dict
+        result['metadata'] = js.loads(result['metadata'])
+        return result
+
+    def add_attributes(self, req, resp, eid, category):
+        metadata_model = EntryPoints('element_attributes')[category]()
+        metadata_model.update(req.json)
+        # Check to see all required data was submittied
+        metadata_model._pre_commit()
+        metadata = metadata_model.json
+        element = infinitystone_element()
+        element.sql_id(eid)
+        model = infinitystone_element_attributes()
+        model['element_id'] = eid
+        model['metadata'] = metadata
+        model['attr_model'] = category
+        model.commit()
+        return model
+
+    def update_attributes(self, req, resp, eid, category):
+        # In case not all fields was submitted,
+        # first we grab what we had.
+        attrs = infinitystone_element_attributes()
+        attrs.sql_id(category)
+        category = attrs['attr_model']
+        obj = EntryPoints('element_attributes')[category]()
+        obj.update(js.loads(attrs['metadata']))
+        obj.update(req.json)
+        attrs['metadata'] = obj.json
+        attrs.commit()
+
+        return obj.dict
+
+    def delete_attributes(self, req, resp, eid, category):
+        attr = obj(req, infinitystone_element_attributes, sql_id=category)
+        attr.sql_id(category)
+        attr.commit()
+        return attr
+
 
 @register.resources()
 class Interfaces():
@@ -322,3 +409,19 @@ class Interfaces():
         for e in EntryPoints('tachyonic_interfaces'):
             interfaces.append({'id': e, 'name': e})
         return raw_list(req, interfaces)
+
+@register.resources()
+class Categories():
+    def __init__(self):
+        router.add('GET',
+                   '/v1/categories',
+                   self.list,
+                   tag='infrastructure:view')
+
+    def list(self, req, resp):
+        """Lists all the registered element_attributes Entrypoints.
+        """
+        categories = []
+        for e in EntryPoints('element_attributes'):
+            categories.append({'id': e, 'name': e})
+        return raw_list(req, categories)

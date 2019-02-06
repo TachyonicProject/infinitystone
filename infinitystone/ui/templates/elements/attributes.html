@@ -1,0 +1,21 @@
+{% extends "photonic/view.html" %}
+
+{% block content %}
+    <form id="attribute_form" autocomplete="off" method='post' enctype="multipart/form-data">
+        {{ form }}
+    </form>
+{% endblock %}
+
+{% block buttons %}
+    {% if 'add' in view.lower() %}
+    <a href="{{ APP }}/infrastructure/elements/edit/{{id}}" class="btn btn-default">Cancel</a>
+    <a href="{{ APP }}/infrastructure/elements/{{id}}/{{model}}" data-form="attribute_form" class="btn btn-primary">Add</a>
+    {% elif 'edit' in view.lower() %}
+    <a href="{{ APP }}/infrastructure/elements/edit/{{id}}" class="btn btn-default">Cancel</a>
+    <a href="{{ APP }}/infrastructure/elements/edit/{{id}}/{{aid}}/" data-form="attribute_form" class="btn btn-primary">Update</a>
+    <a href="{{ APP }}/infrastructure/elements/delete/{{id}}/{{aid}}" class="btn btn-danger">Delete</a>
+    {% else %}
+    <a href="#" onclick="close_window();" class="btn btn-default">Cancel</a>
+    <a href="{{ APP }}/infrastructure/elements/edit/{{id}}/{{aid}}" class="btn btn-primary">Edit</a>
+    {% endif %}
+{% endblock %}
