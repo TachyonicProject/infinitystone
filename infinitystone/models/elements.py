@@ -43,7 +43,7 @@ class infinitystone_element(SQLModel):
     name = SQLModel.String(null=False)
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)
-    element_parent = SQLModel.ForeignKey(parent_id, id)
+    element_parent = SQLModel.ForeignKey(parent_id, id, on_delete='RESTRICT')
     unique_element = SQLModel.UniqueIndex(name, domain, tenant_id)
     primary_key = id
 
@@ -53,7 +53,7 @@ class infinitystone_element_interface(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     element_id = SQLModel.Uuid(null=False)
     interface = SQLModel.String(null=False)
-    metadata = SQLModel.LongText()
+    metadata = SQLModel.MediumText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     element_int_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
     unique_element_interface = SQLModel.UniqueIndex(element_id, interface)
@@ -61,11 +61,11 @@ class infinitystone_element_interface(SQLModel):
     primary_key = id
 
 @register.model()
-class infinitystone_element_attributes(SQLModel):
+class infinitystone_element_classifications(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     element_id = SQLModel.Uuid(null=False)
-    attr_model = SQLModel.String(null=False)
-    metadata = SQLModel.LongText()
+    classification = SQLModel.String(null=False)
+    metadata = SQLModel.MediumText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     em_attr_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
     primary_key = id

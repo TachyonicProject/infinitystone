@@ -37,13 +37,13 @@ from luxon.utils.pkg import EntryPoints
 from luxon.exceptions import NotFoundError
 from luxon.exceptions import SQLOperationalError
 from luxon.exceptions import SQLProgrammingError
-from luxon.helpers.api import raw_list, obj
+from luxon.helpers.api import raw_list, sql_list, obj
 from luxon.helpers.access import validate_access
 from luxon.utils.cast import to_list
 
 from infinitystone.models.elements import infinitystone_element
 from infinitystone.models.elements import infinitystone_element_interface
-from infinitystone.models.elements import infinitystone_element_attributes
+from infinitystone.models.elements import infinitystone_element_classifications
 
 from luxon.helpers.crypto import Crypto
 
@@ -84,83 +84,83 @@ class Elements(object):
     def __init__(self):
         router.add('GET', '/v1/elements',
                    self.list_elements,
-                   tag='services')
+                   tag='infrastructure:view')
+
+        router.add('GET', '/v1/elements/parents',
+                   self.list_parents,
+                   tag='infrastructure:view')
 
         router.add('GET', '/v1/element/{eid}',
                    self.view_element,
-                   tag='services')
+                   tag='infrastructure:view')
 
         router.add('POST', '/v1/element',
                    self.add_element,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add('POST', '/v1/element/{eid}',
                    self.add_element,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add(['PUT', 'PATCH'], '/v1/element/{eid}',
                    self.update_element,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add('DELETE', '/v1/element/{eid}',
                    self.delete_element,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add('POST', '/v1/element/{eid}/{interface}',
                    self.add_interface,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add(['PATCH', 'PUT'], '/v1/element/{eid}/{interface}',
                    self.update_interface,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add('DELETE', '/v1/element/{eid}/{interface}',
                    self.delete_interface,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add('GET', '/v1/element/{eid}/{interface}',
                    self.view_interface,
-                   tag='services')
+                   tag='infrastructure:view')
 
         router.add('POST', '/v1/element/{eid}/tag/{tag}',
                    self.add_tag,
-                   tag='services')
+                   tag='infrastructure:admin')
 
         router.add('DELETE', '/v1/element/{eid}/tag/{tag}',
                    self.delete_tag,
-                   tag='services')
+                   tag='infrastructure:admin')
 
-        router.add('GET', '/v1/element/{eid}/attributes/{category}',
+        router.add('GET', '/v1/element/{eid}/attributes/{classification}',
                    self.view_attributes,
-                   tag='services')
+                   tag='infrastructure:view')
 
-        router.add('POST', '/v1/element/{eid}/attributes/{category}',
+        router.add('POST', '/v1/element/{eid}/attributes/{classification}',
                    self.add_attributes,
-                   tag='services')
+                   tag='infrastructure:admin')
 
-        router.add(['PATCH', 'PUT'], '/v1/element/{eid}/attributes/{category}',
+        router.add(['PATCH', 'PUT'],
+                   '/v1/element/{eid}/attributes/{classification}',
                    self.update_attributes,
-                   tag='services')
+                   tag='infrastructure:admin')
 
-        router.add('DELETE', '/v1/element/{eid}/attributes/{category}',
+        router.add('DELETE', '/v1/element/{eid}/attributes/{classification}',
                    self.delete_attributes,
-                   tag='services')
+                   tag='infrastructure:admin')
 
     def list_elements(self, req, resp):
-        sql = 'SELECT * FROM infinitystone_element WHERE domain '
+        return sql_list(req, 'infinitystone_element', ('id',
+                                                       'parent_id',
+                                                       'name',
+                                                       'enabled',
+                                                       'creation_time'))
+
+    def list_parents(self, req, resp):
+        sql = 'SELECT * FROM infinitystone_element'
         vals = []
-
-        if req.context_domain:
-            sql += '= ?'
-            vals.append(req.context_domain)
-        else:
-            sql += 'is NULL'
-
-        if req.context_tenant_id:
-            sql += ' AND tenant_id=?'
-            vals.append(req.context_tenant_id)
-        else:
-            sql += ' AND tenant_id IS NULL'
 
         with db() as conn:
             elements = conn.execute(sql, vals).fetchall()
@@ -213,11 +213,11 @@ class Elements(object):
 
         attributes = []
 
-        for attrs in get_related(eid, 'infinitystone_element_attributes',
-                                     'element_id'):
+        for attrs in get_related(eid, 'infinitystone_element_classifications',
+                                 'element_id'):
             attrs = {"id": attrs['id'],
-                         "category": attrs['attr_model'],
-                         "metadata": js.loads(attrs['metadata'])}
+                     "classification": attrs['classification'],
+                     "metadata": js.loads(attrs['metadata'])}
             attributes.append(attrs)
 
         return attributes
@@ -246,10 +246,11 @@ class Elements(object):
             interfaces = conn.execute("SELECT interface,metadata,creation_time"
                                       " FROM infinitystone_element_interface"
                                       " WHERE element_id = %s", eid).fetchall()
-            attributes = conn.execute("SELECT attr_model,metadata,"
-                                      " creation_time"
-                                      " FROM infinitystone_element_attributes"
-                                      " WHERE element_id = %s", eid).fetchall()
+            classifications = conn.execute("SELECT classification,metadata,"
+                                       " creation_time FROM"
+                                       " infinitystone_element_classifications"
+                                       " WHERE element_id = %s",
+                                       eid).fetchall()
             tags = conn.execute("SELECT name"
                                 " FROM infinitystone_element_tag"
                                 " WHERE element_id = %s", eid).fetchall()
@@ -265,7 +266,7 @@ class Elements(object):
 
         to_return['children'] = children
         to_return['interfaces'] = interfaces
-        to_return['attributes'] = attributes
+        to_return['classifications'] = classifications
         to_return['tags'] = tags
 
         crypto = Crypto()
@@ -273,7 +274,7 @@ class Elements(object):
             interfaces_metadata = crypto.decrypt(interfaces['metadata'])
             interfaces['metadata'] = js.loads(interfaces_metadata)
 
-        for attrs in to_return['attributes']:
+        for attrs in to_return['classifications']:
             attrs['metadata'] = js.loads(attrs['metadata'])
 
         return to_return
@@ -351,35 +352,37 @@ class Elements(object):
             conn.commit()
             return self.view_element(req, resp, eid)
 
-    def view_attributes(self, req, resp, eid, category):
-        obj = infinitystone_element_attributes()
-        obj.sql_id(category)
+    def view_attributes(self, req, resp, eid, classification):
+        obj = infinitystone_element_classifications()
+        obj.sql_id(classification)
         result = obj.dict
         result['metadata'] = js.loads(result['metadata'])
         return result
 
-    def add_attributes(self, req, resp, eid, category):
-        metadata_model = EntryPoints('element_attributes')[category]()
+    def add_attributes(self, req, resp, eid, classification):
+        metadata_model = EntryPoints('tachyonic.element.classifications')[
+            classification]()
         metadata_model.update(req.json)
         # Check to see all required data was submittied
         metadata_model._pre_commit()
         metadata = metadata_model.json
         element = infinitystone_element()
         element.sql_id(eid)
-        model = infinitystone_element_attributes()
+        model = infinitystone_element_classifications()
         model['element_id'] = eid
         model['metadata'] = metadata
-        model['attr_model'] = category
+        model['classification'] = classification
         model.commit()
         return model
 
-    def update_attributes(self, req, resp, eid, category):
+    def update_attributes(self, req, resp, eid, classification):
         # In case not all fields was submitted,
         # first we grab what we had.
-        attrs = infinitystone_element_attributes()
-        attrs.sql_id(category)
-        category = attrs['attr_model']
-        obj = EntryPoints('element_attributes')[category]()
+        attrs = infinitystone_element_classifications()
+        attrs.sql_id(classification)
+        classification = attrs['classification']
+        obj = EntryPoints('tachyonic.element.classifications')[
+            classification]()
         obj.update(js.loads(attrs['metadata']))
         obj.update(req.json)
         attrs['metadata'] = obj.json
@@ -387,9 +390,10 @@ class Elements(object):
 
         return obj.dict
 
-    def delete_attributes(self, req, resp, eid, category):
-        attr = obj(req, infinitystone_element_attributes, sql_id=category)
-        attr.sql_id(category)
+    def delete_attributes(self, req, resp, eid, classification):
+        attr = obj(req, infinitystone_element_classifications,
+                   sql_id=classification)
+        attr.sql_id(classification)
         attr.commit()
         return attr
 
@@ -410,18 +414,19 @@ class Interfaces():
             interfaces.append({'id': e, 'name': e})
         return raw_list(req, interfaces)
 
+
 @register.resources()
-class Categories():
+class Classifications():
     def __init__(self):
         router.add('GET',
-                   '/v1/categories',
+                   '/v1/classifications',
                    self.list,
                    tag='infrastructure:view')
 
     def list(self, req, resp):
         """Lists all the registered element_attributes Entrypoints.
         """
-        categories = []
-        for e in EntryPoints('element_attributes'):
-            categories.append({'id': e, 'name': e})
-        return raw_list(req, categories)
+        classifications = []
+        for e in EntryPoints('tachyonic.element.classifications'):
+            classifications.append({'id': e, 'name': e})
+        return raw_list(req, classifications)

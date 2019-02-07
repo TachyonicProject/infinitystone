@@ -119,22 +119,22 @@ class Elements:
                    tag='infrastructure:admin')
 
         router.add('POST',
-                   '/infrastructure/elements/{eid}/{category}',
+                   '/infrastructure/elements/{eid}/{classification}',
                    self.add_attributes,
                    tag='infrastructure:admin')
 
         router.add('POST',
-                   '/infrastructure/elements/edit/{eid}/{category}',
+                   '/infrastructure/elements/edit/{eid}/{classification}',
                    self.update_attributes,
                    tag='infrastructure:admin')
 
         router.add('GET',
-                   '/infrastructure/elements/edit/{eid}/{category}',
+                   '/infrastructure/elements/edit/{eid}/{classification}',
                    self.edit_attributes,
                    tag='infrastructure:admin')
 
         router.add('GET',
-                   '/infrastructure/elements/delete/{eid}/{category}',
+                   '/infrastructure/elements/delete/{eid}/{classification}',
                    self.delete_attributes,
                    tag='infrastructure:admin')
 
@@ -149,9 +149,10 @@ class Elements:
         element = req.context.api.execute('GET', '/v1/element/%s' % eid)
         attrs = {}
 
-        for a in element.json['attributes']:
-            attr_model = EntryPoints('element_attributes')[a['attr_model']]
-            attrs[a['attr_model']] = form(attr_model,
+        for a in element.json['classifications']:
+            classification = EntryPoints('tachyonic.element.classifications')[
+                a['classification']]
+            attrs[a['classification']] = form(classification,
                                           a['metadata'],
                                           readonly=True)
 
@@ -246,42 +247,42 @@ class Elements:
 
     def attributes(self, req, resp, eid):
         try:
-            category = req.form_dict['category']
+            classification = req.form_dict['classification']
         except KeyError:
-            raise FieldMissing('Category', 'Element Category',
+            raise FieldMissing('classification', 'Element classification',
                                'Please select Cateopgry for Element')
-        return render_model('element_attributes', eid, category, 'attributes',
-                            view="Add")
+        return render_model('tachyonic.element.classifications', eid,
+                            classification, 'attributes', view="Add")
 
-    def add_attributes(self, req, resp, eid, category):
+    def add_attributes(self, req, resp, eid, classification):
         req.context.api.execute('POST',
                                 '/v1/element/%s/attributes/%s' % (
-                                    eid, category,),
+                                    eid, classification,),
                                 data=req.form_dict)
         req.method = 'GET'
         return self.edit(req, resp, eid)
 
-    def update_attributes(self, req, resp, eid, category):
+    def update_attributes(self, req, resp, eid, classification):
         req.context.api.execute('PUT',
                                 '/v1/element/%s/attributes/%s' % (
-                                    eid, category,),
+                                    eid, classification,),
                                 data=req.form_dict)
         req.method = 'GET'
         return self.edit(req, resp, eid)
 
-    def edit_attributes(self, req, resp, eid, category):
+    def edit_attributes(self, req, resp, eid, classification):
         e_attr = req.context.api.execute('GET',
                                         '/v1/element/%s/attributes/%s' % (
-                                            eid, category,)).json
-        return render_model('element_attributes', eid,
-                            e_attr['attr_model'], 'attributes',
+                                            eid, classification,)).json
+        return render_model('tachyonic.element.classifications', eid,
+                            e_attr['classification'], 'attributes',
                             view="Edit", data=e_attr['metadata'],
                             aid = e_attr['id'])
 
-    def delete_attributes(self, req, resp, eid, category):
+    def delete_attributes(self, req, resp, eid, classification):
         req.context.api.execute('DELETE',
                                 '/v1/element/%s/attributes/%s' % (
-                                eid, category,),
+                                eid, classification,),
                                 data=req.form_dict)
 
         element = req.context.api.execute('GET', '/v1/element/%s' % eid)
