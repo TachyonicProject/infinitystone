@@ -43,7 +43,7 @@ class infinitystone_element(SQLModel):
     name = SQLModel.String(null=False)
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)
-    element_parent = SQLModel.ForeignKey(parent_id, id)
+    element_parent = SQLModel.ForeignKey(parent_id, id, on_delete='RESTRICT')
     unique_element = SQLModel.UniqueIndex(name, domain, tenant_id)
     primary_key = id
 
