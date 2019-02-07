@@ -13,7 +13,7 @@
     </form>
     <table class="display" data-url="/v1/element/{{id}}&view=attributes" width="100%">
         <thead>
-            <th id='category'>Category</th>
+            <th id='classification'>classification</th>
             <th data-href="/infrastructure/elements/edit/{{id}}" width="2rem">
                 <span data-feather="edit"></span>
             </th>
@@ -21,11 +21,11 @@
     </table>
     <form id='attr_form' autocomplete="off" data-datatable action="{{ APP }}/infrastructure/elements/{{id}}/attributes" enctype="multipart/form-data" class="row">
         <div class="col-sm-3">
-             <select id="add_attr" name="category" data-id="name" data-url="/v1/categories" data-placeholder="Select Category">
+             <select id="add_attr" name="classification" data-id="name" data-url="/v1/classifications" data-placeholder="Select classification">
             </select>
         </div>
         <div class="col-sm-3">
-            <a href="{{ APP }}/infrastructure/elements/{{id}}/attributes" data-form="attr_form" class="btn btn-success">Add Element Category</a>
+            <a href="{{ APP }}/infrastructure/elements/{{id}}/attributes" data-form="attr_form" class="btn btn-success">Add Classification</a>
         </div>
     </form>
     <hr>
@@ -43,7 +43,7 @@
             </select>
         </div>
         <div class="col-sm-3">
-            <a href="{{ APP }}/infrastructure/elements/{{id}}/interface" data-form="interface_form" class="btn btn-success">Add Element Interface</a>
+            <a href="{{ APP }}/infrastructure/elements/{{id}}/interface" data-form="interface_form" class="btn btn-success">Add Interface</a>
         </div>
     </form>
 {% endblock %}

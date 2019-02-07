@@ -61,10 +61,10 @@ class infinitystone_element_interface(SQLModel):
     primary_key = id
 
 @register.model()
-class infinitystone_element_attributes(SQLModel):
+class infinitystone_element_classifications(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     element_id = SQLModel.Uuid(null=False)
-    attr_model = SQLModel.String(null=False)
+    classification = SQLModel.String(null=False)
     metadata = SQLModel.LongText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     em_attr_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
