@@ -53,7 +53,7 @@ class infinitystone_element_interface(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     element_id = SQLModel.Uuid(null=False)
     interface = SQLModel.String(null=False)
-    metadata = SQLModel.LongText()
+    metadata = SQLModel.MediumText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     element_int_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
     unique_element_interface = SQLModel.UniqueIndex(element_id, interface)
@@ -65,7 +65,7 @@ class infinitystone_element_classifications(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     element_id = SQLModel.Uuid(null=False)
     classification = SQLModel.String(null=False)
-    metadata = SQLModel.LongText()
+    metadata = SQLModel.MediumText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     em_attr_ref = SQLModel.ForeignKey(element_id, infinitystone_element.id)
     primary_key = id

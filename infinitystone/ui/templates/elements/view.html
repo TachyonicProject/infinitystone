@@ -11,7 +11,7 @@
         {{ form }}
     </form>
     {% for attr in attrs %}
-        <h2>{{ attr }} attributes</h2>
+        <h2>{{ attr|upper }} Attributes</h2>
         {{ attrs[attr] }}
     {% endfor %}
     <table class="display" data-url="/v1/element/{{id}}&view=children" width="100%">
