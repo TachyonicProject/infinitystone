@@ -3,7 +3,7 @@
 {% block content %}
     <form id="form" autocomplete="off" method='post' enctype="multipart/form-data">
         <label for="update_parent">Parent</label>
-        <select id="update_parent" name="parent_id" data-id="id" data-url="/v1/elements" data-allow-clear data-placeholder="Select Parent">
+        <select id="update_parent" name="parent_id" data-id="id" data-url="/v1/elements/parents" data-allow-clear data-placeholder="Select Parent">
             <option value=""></option>
             {% if parent %}
                 <option value="{{parent_id}}" selected>{{parent}}</option>
