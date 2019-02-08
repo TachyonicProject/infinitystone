@@ -290,7 +290,8 @@ class Elements(object):
         return element
 
     def add_interface(self, req, resp, eid, interface):
-        metadata_model = EntryPoints('netrino_elements')[interface]()
+        metadata_model = EntryPoints('tachyonic.element.interfaces')[
+            interface].model()
         metadata_model.update(req.json)
         # Check to see all required data was submittied
         metadata_model._pre_commit()
@@ -314,7 +315,7 @@ class Elements(object):
         # first we grab what we had.
         current = self.view_interface(req, resp, eid, interface)
         crypto = Crypto()
-        model = EntryPoints('netrino_elements')[interface]()
+        model = EntryPoints('tachyonic.element.interfaces')[interface].model()
         model.update(current['metadata'])
         model.update(req.json)
         model_json = crypto.encrypt(model.json)
@@ -407,10 +408,11 @@ class Interfaces():
                    tag='infrastructure:view')
 
     def list(self, req, resp):
-        """Lists all the registered tachyonic_interfaces Entrypoints.
+        """Lists all interfaces registered under the
+        tachyonic.element.interfaces entry point.
         """
         interfaces = []
-        for e in EntryPoints('tachyonic_interfaces'):
+        for e in EntryPoints('tachyonic.element.interfaces'):
             interfaces.append({'id': e, 'name': e})
         return raw_list(req, interfaces)
 
