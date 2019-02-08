@@ -291,7 +291,7 @@ class Elements:
                                             eid, classification,)).json
 
         model = EntryPoints('tachyonic.element.classifications')[
-            classification]
+            e_attr['classification']]
 
         return render_model(model, eid, e_attr['classification'], 'attributes',
                             view="Edit", data=e_attr['metadata'],
