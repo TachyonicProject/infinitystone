@@ -44,14 +44,14 @@ g.nav_menu.add('/Infrastructure/Elements',
                feather='server')
 
 
-def render_model(ep, eid, model, mtype, view, data=None, ro=False, **kwargs):
-    element_model = EntryPoints(ep)[model]
+def render_model(element_model, eid, mval, mtype, view, data=None,
+                 ro=False, **kwargs):
     html_form = form(element_model, data, readonly=ro)
     return render_template('infinitystone.ui/elements/%s.html' % mtype,
-                           view='%s %s %s' % (view, model, mtype),
+                           view='%s %s %s' % (view, mval, mtype),
                            form=html_form,
                            id=eid,
-                           model=model,
+                           model=mval,
                            **kwargs)
 
 
@@ -208,8 +208,9 @@ class Elements:
         except KeyError:
             raise FieldMissing('Interface', 'Element Interface',
                                'Please select Interface for Element')
-        return render_model('netrino_elements', eid, interface, 'interface',
-                            view="Add")
+        model = EntryPoints('tachyonic.element.interfaces')[interface].model
+
+        return render_model(model, eid, interface, 'interface', view="Add")
 
     def add_interface(self, req, resp, eid, interface):
         req.context.api.execute('POST',
@@ -229,15 +230,23 @@ class Elements:
                                         '/v1/element/%s/%s' % (
                                             eid, interface,),
                                         data=req.form_dict)
-        return render_model('netrino_elements', eid, interface, 'interface',
-                            view="Edit", data=e_int.json['metadata'])
+
+        model = EntryPoints('tachyonic.element.interfaces')[interface].model
+
+        return render_model(model, eid, interface,
+                            'interface', view="Edit",
+                            data=e_int.json['metadata'])
 
     def view_interface(self, req, resp, eid, interface):
         e_int = req.context.api.execute('GET',
                                         '/v1/element/%s/%s' % (
                                             eid, interface,))
-        return render_model('netrino_elements', eid, interface, 'interface',
-                            view="View", data=e_int.json['metadata'], ro=True)
+
+        model = EntryPoints('tachyonic.element.interfaces')[interface].model
+
+        return render_model(model, eid, interface,
+                            'interface', view="View",
+                            data=e_int.json['metadata'], ro=True)
 
 
     def delete_interface(self, req, resp, eid, interface):
@@ -251,15 +260,21 @@ class Elements:
         except KeyError:
             raise FieldMissing('classification', 'Element classification',
                                'Please select Cateopgry for Element')
-        return render_model('tachyonic.element.classifications', eid,
-                            classification, 'attributes', view="Add")
+
+        model = EntryPoints('tachyonic.element.classifications')[
+            classification]
+
+        return render_model(model, eid, classification,
+                            'attributes', view="Add")
 
     def add_attributes(self, req, resp, eid, classification):
         req.context.api.execute('POST',
                                 '/v1/element/%s/attributes/%s' % (
                                     eid, classification,),
                                 data=req.form_dict)
+
         req.method = 'GET'
+
         return self.edit(req, resp, eid)
 
     def update_attributes(self, req, resp, eid, classification):
@@ -274,8 +289,11 @@ class Elements:
         e_attr = req.context.api.execute('GET',
                                         '/v1/element/%s/attributes/%s' % (
                                             eid, classification,)).json
-        return render_model('tachyonic.element.classifications', eid,
-                            e_attr['classification'], 'attributes',
+
+        model = EntryPoints('tachyonic.element.classifications')[
+            classification]
+
+        return render_model(model, eid, e_attr['classification'], 'attributes',
                             view="Edit", data=e_attr['metadata'],
                             aid = e_attr['id'])
 
