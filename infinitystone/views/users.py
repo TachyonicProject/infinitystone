@@ -209,6 +209,9 @@ class Users(object):
 
     def set_role(self, req, resp, user_id,
                  role, domain=None, tenant_id=None):
+        if domain and domain.lower() == 'none':
+            domain = None
+
         role_id = get_role_id(role)
         current_roles = self._get_roles(req)
 
@@ -222,9 +225,10 @@ class Users(object):
 
         # Check if access to role
         access = self._access(current_roles, domain, tenant_id)
+
         if role not in access:
             raise AccessDeniedError(
-                'Not sufficiant credentials to assign role')
+                'Not sufficient credentials to assign role')
 
         model = infinitystone_user_role()
         model['role_id'] = role_id
@@ -233,8 +237,8 @@ class Users(object):
         if domain:
             model['domain'] = domain
 
-            if tenant_id:
-                model['tenant_id'] = tenant_id
+        if tenant_id:
+            model['tenant_id'] = tenant_id
 
         model.commit()
 
