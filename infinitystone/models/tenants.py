@@ -41,7 +41,7 @@ class infinitystone_tenant(SQLModel):
     id = SQLModel.Uuid(default=uuid4, internal=True)
     domain = SQLModel.Fqdn(internal=True)
     tenant_id = SQLModel.Uuid(internal=True, readonly=True)
-    crm_id = SQLModel.String(max_length=100, internal=True, readonly=True)
+    crm_id = SQLModel.String(max_length=100, internal=True)
     name = SQLModel.String(max_length=100, null=False)
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)

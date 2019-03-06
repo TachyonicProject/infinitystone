@@ -132,6 +132,9 @@ class Users():
 
         uri = '/v1/user_roles/%s/%s' % (user_id, role,)
 
+        if tenant_id and not domain:
+            uri += '/None/%s' % tenant_id
+
         if domain:
             uri += '/%s' % domain
 

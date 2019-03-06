@@ -153,6 +153,7 @@ class Elements(object):
 
     def list_elements(self, req, resp):
         return sql_list(req, 'infinitystone_element', ('id',
+                                                       'tenant_id',
                                                        'parent_id',
                                                        'name',
                                                        'enabled',
