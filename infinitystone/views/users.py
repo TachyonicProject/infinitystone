@@ -225,9 +225,7 @@ class Users(object):
 
         # Check if access to role
         access = self._access(current_roles, domain, tenant_id)
-        from luxon import GetLogger
-        log = GetLogger(__name__)
-        log.debug("MYDEBUG: role: %s, access:%s" % (role,access) )
+
         if role not in access:
             raise AccessDeniedError(
                 'Not sufficient credentials to assign role')
