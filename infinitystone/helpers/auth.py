@@ -33,6 +33,7 @@ from luxon.utils.password import valid as is_valid_password
 from luxon.exceptions import AccessDeniedError
 from infinitystone.models.users import infinitystone_user
 
+
 def localize(username, domain):
     default_role = g.app.config.get(
         'identity', 'default_tenant_role',
@@ -58,15 +59,14 @@ def localize(username, domain):
                 user_obj['domain'] = domain
 
             user_obj.commit()
-            user_id = user_obj.id
-            
+
 
 def authorize(username=None, password=None, domain=None):
     with db() as conn:
         values = [username, ]
         sql = 'SELECT username, password FROM infinitystone_user'
         sql += ' WHERE'
-        sql += ' username = %s'
+        sql += ' username = %s and enabled = 1'
         if domain is not None:
             sql += ' AND domain = %s'
             values.append(domain)
