@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import g
+from luxon import db
 from luxon import register
 from luxon import router
 from luxon.utils.imports import get_class
+from luxon.exceptions import HTTPForbidden
 
 from infinitystone.helpers.auth import localize
 from infinitystone.helpers.users import get_user_id
@@ -40,27 +42,36 @@ from infinitystone.helpers.tenants import get_tenant_domain
 
 @register.resources()
 class Token(object):
-    """Token Middleware.
+    """Token Authentication.
 
     Validates token and sets request.token object.
 
-    Luxon tokens use PKI. Its required to have the private key to sign
-    new tokens on the tachyonic api. Endpoints will require the public cert
+    Luxon tokens use RSA Keys. Its required to have the private key to sign
+    new tokens on the tachyonic api. Endpoints will require the public key
     to validate tokens authenticity.
-
-    The tokens should be stored in the application root. Usually where the wsgi
-    file is located.
-
-    Creating token:
-        openssl req  -nodes -new -x509  -keyout token.key -out token.cert
     """
     def __init__(self):
         router.add('GET', '/v1/token', self.get)
         router.add('POST', '/v1/token', self.post)
+        router.add('PUT', '/v1/token', self.put)
         router.add('PATCH', '/v1/token', self.patch)
 
     def get(self, req, resp):
         return req.credentials
+
+    def put(self, req, resp):
+        username = req.credentials.username
+        domain = req.credentials.domain
+        user_id = get_user_id(username, domain)
+        with db() as conn:
+            sql = "SELECT username FROM infinitystone_user"
+            sql += " WHERE id = %s AND enabled = '1'"
+            user = conn.execute(sql, user_id).fetchone()
+        if user:
+            req.credentials.extend()
+            return req.credentials
+        else:
+            raise HTTPForbidden('User account suspended or invalid')
 
     def post(self, req, resp):
         request_object = req.json
@@ -103,7 +114,11 @@ class Token(object):
         tenant_id = request_object.get('tenant_id')
         user_id = req.credentials.user_id
         if tenant_id is not None:
+            # Its important to find tenants domain, required by Photonic.
+            # Since you can select global tenants that may be within a specific
+            # domain prior to scoping the domain.
             req.credentials.domain = get_tenant_domain(tenant_id)
+
             req.credentials.tenant_id = tenant_id
             req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id,
@@ -116,5 +131,5 @@ class Token(object):
             req.credentials.domain = domain
             req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id, domain)
-            
+
         return req.credentials
