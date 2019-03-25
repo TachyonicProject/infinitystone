@@ -13,7 +13,7 @@
     </form>
     <table class="display" data-url="/v1/element/{{id}}&view=attributes" width="100%">
         <thead>
-            <th id='classification'>classification</th>
+            <th id='classification'>Classifications</th>
             <th data-href="/infrastructure/elements/edit/{{id}}" width="2rem">
                 <span data-feather="edit"></span>
             </th>
@@ -21,7 +21,10 @@
     </table>
     <form id='attr_form' autocomplete="off" data-datatable action="{{ APP }}/infrastructure/elements/{{id}}/attributes" enctype="multipart/form-data" class="row">
         <div class="col-sm-3">
-             <select id="add_attr" name="classification" data-id="name" data-url="/v1/classifications" data-placeholder="Select classification">
+             <select id="add_attr" name="classification" data-id="name" data-placeholder="Select classification">
+                 {% for c in classifications %}
+                     <option name="{{ c }}">{{ c }}</option>
+                 {%  endfor %}
             </select>
         </div>
         <div class="col-sm-3">

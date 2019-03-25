@@ -187,6 +187,10 @@ class Elements:
             if 'parent' in element.json:
                 parent_name = element.json['parent']['name']
 
+            classifications = []
+            for e in EntryPoints('tachyonic.element.classifications'):
+                classifications.append(e)
+
             html_form = form(infinitystone_element, element.json)
             return render_template('infinitystone.ui/elements/edit.html',
                                    view='Edit Element',
@@ -194,7 +198,8 @@ class Elements:
                                    form=html_form,
                                    id=eid,
                                    parent=parent_name,
-                                   parent_id=element.json['parent_id'])
+                                   parent_id=element.json['parent_id'],
+                                   classifications=classifications)
 
     def add(self, req, resp):
         if req.method == 'POST':
