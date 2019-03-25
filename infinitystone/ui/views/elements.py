@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Dave Kruger.
+# Copyright (c) 2018-2019 Dave Kruger, Christiaan Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ from luxon import g
 from luxon import router
 from luxon import register
 from luxon import render_template
-from luxon import js
 from luxon.utils.bootstrap4 import form
 from luxon.utils.pkg import EntryPoints
 from luxon.exceptions import FieldMissing
@@ -41,6 +40,7 @@ from infinitystone.ui.models.elements import infinitystone_element
 g.nav_menu.add('/Infrastructure/Elements',
                href='/infrastructure/elements',
                tag='services',
+               endpoint='identity',
                feather='server')
 
 
@@ -143,18 +143,20 @@ class Elements:
                                view='Elements')
 
     def delete(self, req, resp, eid):
-        req.context.api.execute('DELETE', '/v1/element/%s' % eid)
+        req.context.api.execute('DELETE', '/v1/element/%s' % eid,
+                                endpoint='identity')
 
     def view(self, req, resp, eid):
-        element = req.context.api.execute('GET', '/v1/element/%s' % eid)
+        element = req.context.api.execute('GET', '/v1/element/%s' % eid,
+                                          endpoint='identity')
         attrs = {}
 
         for a in element.json['classifications']:
             classification = EntryPoints('tachyonic.element.classifications')[
                 a['classification']]
             attrs[a['classification']] = form(classification,
-                                          a['metadata'],
-                                          readonly=True)
+                                              a['metadata'],
+                                              readonly=True)
 
         parent_name = None
 
@@ -172,11 +174,13 @@ class Elements:
     def edit(self, req, resp, eid):
         if req.method == 'POST':
             req.context.api.execute('PUT', '/v1/element/%s' % eid,
-                                    data=req.form_dict)
+                                    data=req.form_dict,
+                                    endpoint='identity')
             return self.view(req, resp, eid)
         else:
 
-            element = req.context.api.execute('GET', '/v1/element/%s' % eid)
+            element = req.context.api.execute('GET', '/v1/element/%s' % eid,
+                                              endpoint='identity')
 
             parent_name = None
 
@@ -186,6 +190,7 @@ class Elements:
             html_form = form(infinitystone_element, element.json)
             return render_template('infinitystone.ui/elements/edit.html',
                                    view='Edit Element',
+                                   name=element.json['name'],
                                    form=html_form,
                                    id=eid,
                                    parent=parent_name,
@@ -194,7 +199,8 @@ class Elements:
     def add(self, req, resp):
         if req.method == 'POST':
             response = req.context.api.execute('POST', '/v1/element',
-                                               data=req.form_dict)
+                                               data=req.form_dict,
+                                               endpoint='identity')
             return self.view(req, resp, response.json['id'])
         else:
             html_form = form(infinitystone_element)
@@ -215,13 +221,15 @@ class Elements:
     def add_interface(self, req, resp, eid, interface):
         req.context.api.execute('POST',
                                 '/v1/element/%s/%s' % (eid, interface,),
-                                data=req.form_dict)
+                                data=req.form_dict,
+                                endpoint='identity')
         req.method = 'GET'
         return self.edit(req, resp, eid)
 
     def update_interface(self, req, resp, eid, interface):
         req.context.api.execute('PUT', '/v1/element/%s/%s' % (eid, interface,),
-                                data=req.form_dict)
+                                data=req.form_dict,
+                                endpoint='identity')
         req.method = 'GET'
         return self.view_interface(req, resp, eid, interface)
 
@@ -229,7 +237,8 @@ class Elements:
         e_int = req.context.api.execute('GET',
                                         '/v1/element/%s/%s' % (
                                             eid, interface,),
-                                        data=req.form_dict)
+                                        data=req.form_dict,
+                                        endpoint='identity')
 
         model = EntryPoints('tachyonic.element.interfaces')[interface].model
 
@@ -240,19 +249,19 @@ class Elements:
     def view_interface(self, req, resp, eid, interface):
         e_int = req.context.api.execute('GET',
                                         '/v1/element/%s/%s' % (
-                                            eid, interface,))
-
+                                            eid, interface,),
+                                        endpoint='identity')
         model = EntryPoints('tachyonic.element.interfaces')[interface].model
 
         return render_model(model, eid, interface,
                             'interface', view="View",
                             data=e_int.json['metadata'], ro=True)
 
-
     def delete_interface(self, req, resp, eid, interface):
         req.context.api.execute('DELETE',
                                 '/v1/element/%s/%s' % (eid, interface,),
-                                data=req.form_dict)
+                                data=req.form_dict,
+                                endpoint='identity')
 
     def attributes(self, req, resp, eid):
         try:
@@ -271,7 +280,8 @@ class Elements:
         req.context.api.execute('POST',
                                 '/v1/element/%s/attributes/%s' % (
                                     eid, classification,),
-                                data=req.form_dict)
+                                data=req.form_dict,
+                                endpoint='identity')
 
         req.method = 'GET'
 
@@ -281,29 +291,31 @@ class Elements:
         req.context.api.execute('PUT',
                                 '/v1/element/%s/attributes/%s' % (
                                     eid, classification,),
-                                data=req.form_dict)
+                                data=req.form_dict,
+                                endpoint='identity')
         req.method = 'GET'
         return self.edit(req, resp, eid)
 
     def edit_attributes(self, req, resp, eid, classification):
         e_attr = req.context.api.execute('GET',
-                                        '/v1/element/%s/attributes/%s' % (
-                                            eid, classification,)).json
-
+                                         '/v1/element/%s/attributes/%s' % (
+                                            eid, classification,),
+                                         endpoint='identity').json
         model = EntryPoints('tachyonic.element.classifications')[
             classification]
 
         return render_model(model, eid, e_attr['classification'], 'attributes',
                             view="Edit", data=e_attr['metadata'],
-                            aid = e_attr['id'])
+                            aid=e_attr['id'])
 
     def delete_attributes(self, req, resp, eid, classification):
         req.context.api.execute('DELETE',
                                 '/v1/element/%s/attributes/%s' % (
-                                eid, classification,),
+                                    eid, classification,),
                                 data=req.form_dict)
 
-        element = req.context.api.execute('GET', '/v1/element/%s' % eid)
+        element = req.context.api.execute('GET', '/v1/element/%s' % eid,
+                                          endpoint='identity')
 
         parent_name = None
 

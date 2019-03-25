@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ from infinitystone.ui.models.roles import infinitystone_role
 g.nav_menu.add('/System/Roles',
                href='/system/roles',
                tag='infrastructure:admin',
+               endpoint='identity',
                feather='shield')
 
 
@@ -97,6 +98,7 @@ class Roles():
                                            endpoint='identity')
             html_form = form(infinitystone_role, role.json)
             return render_template('infinitystone.ui/roles/edit.html',
+                                   role=role.json['name'],
                                    view='Edit Role',
                                    form=html_form,
                                    id=id)

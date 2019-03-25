@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ from infinitystone.ui.models.tenants import infinitystone_tenant
 g.nav_menu.add('/Accounts/Tenants',
                href='/accounts/tenants',
                tag='users:admin',
+               endpoint='identity',
                feather='paperclip')
 
 
@@ -98,6 +99,7 @@ class Tenants():
                                              endpoint='identity')
             html_form = form(infinitystone_tenant, tenant.json)
             return render_template('infinitystone.ui/tenants/edit.html',
+                                   name=tenant.json['name'],
                                    view='Edit Tenant',
                                    form=html_form,
                                    id=id)

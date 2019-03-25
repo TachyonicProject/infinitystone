@@ -72,12 +72,11 @@ class Tenants(object):
         for field, value in search_params(req):
             search['infinitystone_tenant.' + field] = value
 
-
         results = get_tenants(req.credentials.user_id,
                               domain=domain,
                               tenant_id=tenant_id,
                               page=page,
-                              limit=limit * 2, search=search)
+                              limit=limit, search=search)
 
         return raw_list(req, results, limit=limit, context=False, sql=True)
 

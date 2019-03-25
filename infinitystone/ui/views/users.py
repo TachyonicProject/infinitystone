@@ -38,6 +38,7 @@ from infinitystone.ui.models.users import infinitystone_user
 g.nav_menu.add('/Accounts/Users',
                href='/accounts/users',
                tag='admin',
+               endpoint='identity',
                feather='users')
 
 
@@ -101,13 +102,14 @@ class Users():
                                     data=data,
                                     endpoint='identity')
             req.method = 'GET'
-            return self.edit(req, resp, id)
+            return self.view(req, resp, id)
         else:
             user = req.context.api.execute('GET', '/v1/user/%s' % id,
                                            endpoint='identity')
             html_form = form(infinitystone_user, user.json)
             return render_template('infinitystone.ui/users/edit.html',
                                    form=html_form,
+                                   username=user.json['username'],
                                    id=id,
                                    view="Edit User")
 

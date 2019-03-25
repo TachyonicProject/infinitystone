@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ from infinitystone.ui.models.domains import infinitystone_domain
 g.nav_menu.add('/System/Domains',
                href='/system/domains',
                tag='domains:admin',
+               endpoint='identity',
                feather='at-sign')
 
 
@@ -99,6 +100,7 @@ class Domains():
             return render_template('infinitystone.ui/domains/edit.html',
                                    view='Edit Domain',
                                    form=html_form,
+                                   domain=domain.json['name'],
                                    id=id)
 
     def add(self, req, resp):
