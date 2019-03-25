@@ -15,7 +15,7 @@
     <a href="{{ APP }}/infrastructure/elements/edit/{{id}}/{{aid}}/" data-form="attribute_form" class="btn btn-primary">Update</a>
     <a href="{{ APP }}/infrastructure/elements/delete/{{id}}/{{aid}}" class="btn btn-danger">Delete</a>
     {% else %}
-    <a href="#" onclick="close_window();" class="btn btn-default">Cancel</a>
+    <a href="#" data-close-window class="btn btn-default">Cancel</a>
     <a href="{{ APP }}/infrastructure/elements/edit/{{id}}/{{aid}}" class="btn btn-primary">Edit</a>
     {% endif %}
 {% endblock %}

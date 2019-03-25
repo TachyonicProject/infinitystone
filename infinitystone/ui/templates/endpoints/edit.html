@@ -8,6 +8,6 @@
 
 {% block buttons %}
     <a href="{{ APP }}/system/endpoints/{{id}}" class="btn btn-default">Cancel</a>
-    <a data-confirm="Delete item?" data-close href="{{ APP }}/system/endpoints/delete/{{id}}" data-closeall class="btn btn-danger">Delete</a>
-    <a href="{{ APP }}/system/endpoints/edit/{{id}}" data-form="form" class="btn btn-primary">Update</a>
+    <a data-confirm="Remove endpoint {{endpoint['name']}} {{endpoint['interface']}}?" data-close-windows=2 href="{{ APP }}/system/endpoints/delete/{{id}}" data-closeall class="btn btn-danger">Remove</a>
+    <a href="{{ APP }}/system/endpoints/edit/{{id}}" data-form="form" class="btn btn-primary">Save</a>
 {% endblock %}

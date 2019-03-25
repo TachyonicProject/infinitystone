@@ -1,6 +1,6 @@
 {% extends "photonic/view.html" %}
 {% block content %}
-<table class="display" data-url="/v1/endpoints" width="100%">
+<table class="display" data-url="/v1/endpoints" data-endpoint='identity' width="100%">
     <thead>
         <tr>
             <th id='name'>Name</th>
@@ -15,5 +15,5 @@
 </table>
 {% endblock %}
 {% block buttons %}
-<a class="btn btn-primary" data-modal href="{{APP}}/system/endpoints/add">Add Endpoint</a>
+<a class="btn btn-primary" data-modal href="{{APP}}/system/endpoints/add">New</a>
 {% endblock %}

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -74,10 +74,12 @@ class Endpoints():
                                view='Endpoints')
 
     def delete(self, req, resp, id):
-        req.context.api.execute('DELETE', '/v1/endpoint/%s' % id)
+        req.context.api.execute('DELETE', '/v1/endpoint/%s' % id,
+                                endpoint='identity')
 
     def view(self, req, resp, id):
-        endpoint = req.context.api.execute('GET', '/v1/endpoint/%s' % id)
+        endpoint = req.context.api.execute('GET', '/v1/endpoint/%s' % id,
+                                           endpoint='identity')
         html_form = form(infinitystone_endpoint, endpoint.json, readonly=True)
         return render_template('infinitystone.ui/endpoints/view.html',
                                view='View Endpoint',
@@ -87,20 +89,24 @@ class Endpoints():
     def edit(self, req, resp, id):
         if req.method == 'POST':
             req.context.api.execute('PUT', '/v1/endpoint/%s' % id,
-                                    data=req.form_dict)
+                                    data=req.form_dict,
+                                    endpoint='identity')
             return self.view(req, resp, id)
         else:
-            endpoint = req.context.api.execute('GET', '/v1/endpoint/%s' % id)
+            endpoint = req.context.api.execute('GET', '/v1/endpoint/%s' % id,
+                                               endpoint='identity')
             html_form = form(infinitystone_endpoint, endpoint.json)
             return render_template('infinitystone.ui/endpoints/edit.html',
                                    view='Edit Endpoint',
+                                   endpoint=endpoint.json,
                                    form=html_form,
                                    id=id)
 
     def add(self, req, resp):
         if req.method == 'POST':
             response = req.context.api.execute('POST', '/v1/endpoint',
-                                               data=req.form_dict)
+                                               data=req.form_dict,
+                                               endpoint='identity')
             return self.view(req, resp, response.json['id'])
         else:
             html_form = form(infinitystone_endpoint)
