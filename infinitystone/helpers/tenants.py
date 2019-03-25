@@ -140,9 +140,9 @@ def get_tenants(user_id=None, domain=None, tenant_id=None,
     with db() as conn:
         if values:
             return conn.execute(sql + 'WHERE ' + where +
-                                ' LIMIT %s, %s' % (start, limit,),
+                                ' LIMIT %s, %s' % (start, limit + 100,),
                                 values).fetchall()
         else:
             return conn.execute(sql +
-                                ' LIMIT %s, %s' % (start, limit,),
+                                ' LIMIT %s, %s' % (start, limit + 100,),
                                 values).fetchall()

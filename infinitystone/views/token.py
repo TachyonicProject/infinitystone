@@ -33,6 +33,7 @@ from luxon import register
 from luxon import router
 from luxon.utils.imports import get_class
 from luxon.exceptions import HTTPForbidden
+from luxon.utils.timezone import to_utc
 
 from infinitystone.helpers.auth import localize
 from infinitystone.helpers.users import get_user_id
@@ -61,13 +62,18 @@ class Token(object):
 
     def put(self, req, resp):
         username = req.credentials.username
-        domain = req.credentials.domain
+        domain = req.credentials.user_domain
         user_id = get_user_id(username, domain)
         with db() as conn:
-            sql = "SELECT username FROM infinitystone_user"
+            sql = "SELECT username, creation_time FROM infinitystone_user"
             sql += " WHERE id = %s AND enabled = '1'"
             user = conn.execute(sql, user_id).fetchone()
         if user:
+            if user['creation_time'] > to_utc(
+                    req.credentials._credentials['loginat']):
+                raise HTTPForbidden('User account suspended or invalid')
+            localize(username, domain, req.credentials.user_region,
+                     req.credentials.user_confederation, user_id)
             req.credentials.extend()
             return req.credentials
         else:
@@ -95,7 +101,7 @@ class Token(object):
         else:
             raise ValueError("Invalid 'credentials' provided")
 
-        # Creat User locally if not existing
+        # Create User locally if not existing
         localize(username, domain)
         # Get User_id
         user_id = get_user_id(username, domain)
@@ -103,7 +109,15 @@ class Token(object):
         global_roles = get_context_roles(user_id, None)
         domain_roles = get_context_roles(user_id, domain)
         # Set roles in token
-        req.credentials.new(user_id, username=username, domain=domain)
+        req.credentials.new(user_id, username=username, domain=domain,
+                            region=g.app.config.get(
+                                'auth',
+                                'region',
+                                fallback='Region1'),
+                            confederation=g.app.config.get(
+                                'auth',
+                                'confederation',
+                                fallback='Confederation1'))
         req.credentials.roles = domain_roles + global_roles
 
         return req.credentials
@@ -113,6 +127,7 @@ class Token(object):
         domain = request_object.get('domain')
         tenant_id = request_object.get('tenant_id')
         user_id = req.credentials.user_id
+        username = req.credentials.username
         if tenant_id is not None:
             # Its important to find tenants domain, required by Photonic.
             # Since you can select global tenants that may be within a specific
@@ -120,6 +135,10 @@ class Token(object):
             req.credentials.domain = get_tenant_domain(tenant_id)
 
             req.credentials.tenant_id = tenant_id
+            localize(username, req.credentials.user_domain,
+                     req.credentials.user_region,
+                     req.credentials.user_confederation,
+                     user_id)
             req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id,
                                                       req.credentials.domain)
@@ -129,6 +148,9 @@ class Token(object):
 
         elif domain is not None:
             req.credentials.domain = domain
+            localize(username, req.credentials.user_domain,
+                     req.credentials.user_region,
+                     req.credentials.user_confederation, user_id)
             req.credentials.roles = get_context_roles(user_id)
             req.credentials.roles = get_context_roles(user_id, domain)
 

@@ -29,19 +29,16 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import g
 from luxon import db
+from luxon.exceptions import HTTPForbidden
 from luxon.utils.password import valid as is_valid_password
 from luxon.exceptions import AccessDeniedError
 from infinitystone.models.users import infinitystone_user
 
 
-def localize(username, domain):
-    default_role = g.app.config.get(
-        'identity', 'default_tenant_role',
-        fallback='Customer')
-
+def localize(username, domain, region=None, confederation=None, user_id=None):
     with db() as conn:
         values = [username, ]
-        sql = 'SELECT username FROM infinitystone_user'
+        sql = 'SELECT * FROM infinitystone_user'
         sql += ' WHERE'
         sql += ' username = %s'
         if domain is not None:
@@ -52,11 +49,39 @@ def localize(username, domain):
         result = conn.execute(sql,
                               values).fetchone()
 
-        if not result:
+        if result:
+            if (result['roaming'] == 1):
+                if (result['region'] and region and
+                        result['region'] != region):
+                    raise HTTPForbidden('Username exists in context already.')
+                if (result['confederation'] and confederation and
+                        result['confederation'] != confederation):
+                    raise HTTPForbidden('Username exists in context already.')
+            else:
+                local_region = g.app.config.get(
+                                'auth',
+                                'region',
+                                fallback='Region1'),
+                local_confed = g.app.config.get(
+                                'auth',
+                                'confederation',
+                                fallback='Confederation1')
+                if ((region and region != local_region) or
+                        (confederation and
+                         confederation != local_confed)):
+                    if (user_id != result['id']):
+                        raise HTTPForbidden(
+                            'Local username exists for roaming user.')
+        elif not result:
             user_obj = infinitystone_user()
             user_obj['username'] = username
             if domain:
                 user_obj['domain'] = domain
+            if region:
+                user_obj['region'] = region
+            if confederation:
+                user_obj['confederation'] = confederation
+            user_obj['roaming'] = True
 
             user_obj.commit()
 
@@ -66,7 +91,8 @@ def authorize(username=None, password=None, domain=None):
         values = [username, ]
         sql = 'SELECT username, password FROM infinitystone_user'
         sql += ' WHERE'
-        sql += ' username = %s and enabled = 1'
+        sql += ' username = %s AND enabled = 1'
+        sql += ' AND roaming = 0'
         if domain is not None:
             sql += ' AND domain = %s'
             values.append(domain)

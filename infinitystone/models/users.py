@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -58,9 +58,12 @@ class infinitystone_user(SQLModel):
     phone_office = SQLModel.Phone()
     designation = SQLModel.Enum('', 'Mr', 'Mrs', 'Ms', 'Dr', 'Prof')
     last_login = SQLModel.DateTime(readonly=True)
+    region = SQLModel.String(null=True)
+    confederation = SQLModel.String(null=True)
+    roaming = SQLModel.Boolean(default=False)
     enabled = SQLModel.Boolean(default=True)
     creation_time = SQLModel.DateTime(default=now, readonly=True)
-    unique_username = SQLModel.UniqueIndex(username, domain)
+    unique_username = SQLModel.UniqueIndex(username)
     user_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id,
                                           on_delete='RESTRICT')
     user_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name,

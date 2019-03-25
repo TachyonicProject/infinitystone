@@ -11,11 +11,11 @@
     <a href="{{ APP }}/infrastructure/elements/edit/{{id}}" class="btn btn-default">Cancel</a>
     <a href="{{ APP }}/infrastructure/interfaces/{{id}}/{{model}}" data-form="metadata_form" class="btn btn-primary">Add</a>
     {% elif 'edit' in view.lower() %}
-    <a href="#" onclick="close_window();" class="btn btn-default">Cancel</a>
+    <a href="#" data-close-window class="btn btn-default">Cancel</a>
     <a href="{{ APP }}/infrastructure/interfaces/edit/{{id}}/{{model}}/" data-form="metadata_form" class="btn btn-primary">Update</a>
-    <a data-close href="{{ APP }}/infrastructure/interfaces/delete/{{id}}/{{model}}" class="btn btn-danger">Delete</a>
+    <a data-close-window href="{{ APP }}/infrastructure/interfaces/delete/{{id}}/{{model}}" class="btn btn-danger">Delete</a>
     {% else %}
-    <a href="#" onclick="close_window();" class="btn btn-default">Cancel</a>
+    <a href="#" data-close-window class="btn btn-default">Cancel</a>
     <a href="{{ APP }}/infrastructure/interfaces/edit/{{id}}/{{model}}" class="btn btn-primary">Edit</a>
     {% endif %}
 {% endblock %}

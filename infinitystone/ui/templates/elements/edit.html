@@ -50,6 +50,6 @@
 
 {% block buttons %}
     <a href="{{ APP }}/infrastructure/elements/{{id}}" class="btn btn-default">Cancel</a>
-    <a data-confirm="Delete element?" data-closeAll href="{{ APP }}/infrastructure/elements/delete/{{id}}" class="btn btn-danger">Delete</a>
-    <a href="{{ APP }}/infrastructure/elements/edit/{{id}}" data-form="form" class="btn btn-primary">Update</a>
+    <a data-confirm="Delete element {{name}}?" data-close-windows="2" href="{{ APP }}/infrastructure/elements/delete/{{id}}" class="btn btn-danger">Remove</a>
+    <a href="{{ APP }}/infrastructure/elements/edit/{{id}}" data-form="form" class="btn btn-primary">Save</a>
 {% endblock %}

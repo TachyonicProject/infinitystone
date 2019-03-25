@@ -29,15 +29,14 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import sys
-import imp
 import glob
-from distutils import cmd
+from importlib.machinery import SourceFileLoader
 
 if not sys.version_info >= (3, 5):
     print('Requires python version 3.5 or higher')
     exit()
 try:
-    from setuptools import setup, Extension, find_packages
+    from setuptools import setup, find_packages
     from setuptools.command.test import test as TestCommand
 except ImportError:
     print('Requires `setuptools` to be installed')
@@ -62,8 +61,9 @@ PYTEST_FLAGS = ['--doctest-modules']
 sys.path.insert(0, MYDIR)
 
 # Load Metadata from PACKAGE
-metadata = imp.load_source(
-    'metadata', os.path.join(MYDIR, CODE_DIRECTORY, 'metadata.py'))
+metadata = SourceFileLoader(
+    'metadata', os.path.join(MYDIR, CODE_DIRECTORY,
+                             'metadata.py')).load_module()
 
 
 # Miscellaneous helper functions
@@ -178,12 +178,13 @@ setup_dict = dict(
     tests_require=install_requires + tests_requires,
     cmdclass=cmdclass,
     zip_safe=False,  # don't use eggs
-    python_requires='>=3.6'
-    # entry_points={
-    #    'console_scripts': [
-    #        'infinitystone = infinitystone.main:entry_point'
-    #    ],
-    # }
+    python_requires='>=3.6',
+    entry_points={
+        'tachyonic.ui': [
+            'infinitystone = infinitystone.ui.app'
+        ],
+    }
+
 )
 
 
