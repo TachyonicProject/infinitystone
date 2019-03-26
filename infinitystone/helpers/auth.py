@@ -35,6 +35,26 @@ from luxon.exceptions import AccessDeniedError
 from infinitystone.models.users import infinitystone_user
 
 
+def user_tenant(user_id, role):
+    tenants = []
+
+    with db() as conn:
+        query = "SELECT" + \
+                " infinitystone_user_role.tenant_id as tenant_id" + \
+                " FROM" + \
+                " infinitystone_user_role LEFT JOIN infinitystone_role ON" + \
+                " infinitystone_user_role.role_id = infinitystone_role.id" + \
+                " WHERE infinitystone_user_role.user_id = %s" + \
+                " AND infinitystone_role.name = %s" + \
+                " AND infinitystone_user_role.tenant_id is not NULL"
+        result = conn.execute(query, (user_id, role,)).fetchall()
+
+    for tenant in result:
+        tenants.append(tenant['tenant_id'])
+
+    return tenants
+
+
 def localize(username, domain, region=None, confederation=None, user_id=None):
     with db() as conn:
         values = [username, ]
