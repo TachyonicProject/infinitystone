@@ -35,7 +35,7 @@ from luxon.utils.imports import get_class
 from luxon.exceptions import HTTPForbidden
 from luxon.utils.timezone import to_utc
 
-from infinitystone.helpers.auth import localize
+from infinitystone.helpers.auth import localize, user_tenant
 from infinitystone.helpers.users import get_user_id
 from infinitystone.helpers.roles import get_context_roles
 from infinitystone.helpers.tenants import get_tenant_domain
@@ -119,6 +119,18 @@ class Token(object):
                                 'confederation',
                                 fallback='Confederation1'))
         req.credentials.roles = domain_roles + global_roles
+        if len(req.credentials.roles) == 0:
+            usr_cust_tenants = user_tenant(user_id, 'Customer')
+            if len(usr_cust_tenants) == 1:
+                req.credentials.domain = get_tenant_domain(
+                    usr_cust_tenants[0])
+                req.credentials.tenant_id = usr_cust_tenants[0]
+                req.credentials.roles = get_context_roles(
+                    user_id,
+                    req.credentials.domain,
+                    usr_cust_tenants[0])
+            else:
+                req.credentials.default_tenant_id = usr_cust_tenants[0]
 
         return req.credentials
 
