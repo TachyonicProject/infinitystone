@@ -62,6 +62,7 @@ class infinitystone_user(SQLModel):
     confederation = SQLModel.String(null=True)
     roaming = SQLModel.Boolean(default=False)
     enabled = SQLModel.Boolean(default=True)
+    metadata = SQLModel.MediumText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     unique_username = SQLModel.UniqueIndex(username)
     user_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id,

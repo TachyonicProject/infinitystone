@@ -30,6 +30,7 @@
 from luxon import register
 from luxon import router
 from luxon import db
+from luxon import js
 from luxon.utils.sql import build_where
 from luxon.helpers.access import validate_access
 from luxon.helpers.api import raw_list, sql_list, obj
@@ -115,10 +116,26 @@ class Users(object):
         return user
 
     def update(self, req, resp, id):
+        new_metadata = None
+        if req.json.get('metadata'):
+            new_metadata = req.json['metadata']
+            del req.json['metadata']
+
         user = obj(req, infinitystone_user, sql_id=id,
                    hide=('password',))
         if req.json.get('password'):
             user['password'] = hash(req.json['password'])
+        if new_metadata:
+            metadata = user['metadata']
+            if metadata:
+                metadata = js.loads(metadata)
+                metadata.update(new_metadata)
+            else:
+                metadata = new_metadata
+
+            # Removing all keys with 'None' as value
+            metadata = {k: metadata[k] for k in metadata if metadata[k]}
+            user['metadata'] = js.dumps(metadata)
 
         user.commit()
         return user
