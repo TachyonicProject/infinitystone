@@ -41,7 +41,7 @@ USERS = [
      None, None,
      'root', '$2b$12$QaWa.Q3gZuafYXkPo3EJRuSJ1wGuutShb73RuH1gdUVri82CU6V5q',
      None, 'Default Root User', None, None, None, None, None, None, 0,
-     1, now(),),
+     1, None, now(),),
 ]
 
 
