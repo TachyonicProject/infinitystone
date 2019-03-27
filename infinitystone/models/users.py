@@ -41,7 +41,7 @@ USERS = [
      None, None,
      'root', '$2b$12$QaWa.Q3gZuafYXkPo3EJRuSJ1wGuutShb73RuH1gdUVri82CU6V5q',
      None, 'Default Root User', None, None, None, None, None, None, 0,
-     1, now(),),
+     1, None, now(),),
 ]
 
 
@@ -62,6 +62,7 @@ class infinitystone_user(SQLModel):
     confederation = SQLModel.String(null=True)
     roaming = SQLModel.Boolean(default=False)
     enabled = SQLModel.Boolean(default=True)
+    metadata = SQLModel.MediumText()
     creation_time = SQLModel.DateTime(default=now, readonly=True)
     unique_username = SQLModel.UniqueIndex(username)
     user_tenant_ref = SQLModel.ForeignKey(tenant_id, infinitystone_tenant.id,
