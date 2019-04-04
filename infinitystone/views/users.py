@@ -105,7 +105,12 @@ class Users(object):
 
     def users(self, req, resp):
         return sql_list(req, 'infinitystone_user',
-                        ('id', 'username', 'name',),)
+                        fields=['id',
+                                'username',
+                                'name'],
+                        search={'id': str,
+                                'username': str,
+                                'name': str})
 
     def create(self, req, resp):
         user = obj(req, infinitystone_user,

@@ -138,7 +138,13 @@ class Tenants(object):
         return sql_list(req,
                         select,
                         context=False,
+                        fields=('infinitystone_tenant.id',
+                                'infinitystone_tenant.name',
+                                'infinitystone_tenant.domain',
+                                'infinitystone_tenant.crm_id',
+                                'infinitystone_tenant.tenant_id',),
                         search={'infinitystone_tenant.name': str,
+                                'infinitystone_tenant.domain': str,
                                 'infinitystone_tenant.crm_id': str,
                                 'infinitystone_tenant.tenant_id': str})
 
