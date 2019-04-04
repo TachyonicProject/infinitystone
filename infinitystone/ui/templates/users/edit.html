@@ -1,7 +1,7 @@
 {% extends "photonic/view.html" %}
 
 {% block content %}
-    <form id="form" autocomplete="off" method='post' enctype="multipart/form-data">
+    <form id="form" autocomplete="off" method='post' data-no-submit enctype="multipart/form-data">
         {{ form }}
     </form>
     <table class="display" data-url="/v1/user_roles/{{id}}" width="100%">
