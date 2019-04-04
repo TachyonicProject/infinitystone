@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan, David Kruger.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 David Kruger.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -152,12 +153,18 @@ class Elements(object):
                    tag='infrastructure:admin')
 
     def list_elements(self, req, resp):
-        return sql_list(req, 'infinitystone_element', ('id',
-                                                       'tenant_id',
-                                                       'parent_id',
-                                                       'name',
-                                                       'enabled',
-                                                       'creation_time'))
+        return sql_list(req,
+                        'infinitystone_element',
+                        fields=('id',
+                                'tenant_id',
+                                'parent_id',
+                                'name',
+                                'enabled',
+                                'creation_time',),
+                        search={'id': str,
+                                'tenant_id': str,
+                                'parent_id': str,
+                                'name': str})
 
     def list_parents(self, req, resp):
         sql = 'SELECT * FROM infinitystone_element'
@@ -247,11 +254,12 @@ class Elements(object):
             interfaces = conn.execute("SELECT interface,metadata,creation_time"
                                       " FROM infinitystone_element_interface"
                                       " WHERE element_id = %s", eid).fetchall()
-            classifications = conn.execute("SELECT classification,metadata,"
-                                       " creation_time FROM"
-                                       " infinitystone_element_classifications"
-                                       " WHERE element_id = %s",
-                                       eid).fetchall()
+            classifications = conn.execute(
+                "SELECT classification,metadata,"
+                " creation_time FROM"
+                " infinitystone_element_classifications"
+                " WHERE element_id = %s",
+                eid).fetchall()
             tags = conn.execute("SELECT name"
                                 " FROM infinitystone_element_tag"
                                 " WHERE element_id = %s", eid).fetchall()

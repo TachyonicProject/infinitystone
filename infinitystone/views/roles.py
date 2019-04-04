@@ -52,7 +52,9 @@ class Roles(object):
         return obj(req, infinitystone_role, sql_id=id)
 
     def roles(self, req, resp):
-        return sql_list(req, 'infinitystone_role', ('id', 'name', ))
+        return sql_list(req, 'infinitystone_role',
+                        search={'id': str,
+                                'name': str})
 
     def create(self, req, resp):
         role = obj(req, infinitystone_role)
