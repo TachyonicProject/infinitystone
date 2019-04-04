@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 from luxon import register
 from luxon import router
 from luxon.helpers.api import sql_list, obj
+from luxon.utils import sql
 
 from infinitystone.models.endpoints import infinitystone_endpoint
 
@@ -52,12 +53,18 @@ class Endpoints(object):
         return obj(req, infinitystone_endpoint, sql_id=id)
 
     def regions(self, req, resp):
-        return sql_list(req, 'infinitystone_endpoint', ('region',),
-                        group_by='region')
+        select = sql.Select('infinitystone_endpoint')
+        select.group_by = sql.Field('region')
+
+        return sql_list(req, select, fields=('region',))
 
     def endpoints(self, req, resp):
-        return sql_list(req, 'infinitystone_endpoint', ('id', 'name', 'interface',
-                                                'region', 'uri', ))
+        return sql_list(req,
+                        'infinitystone_endpoint',
+                        search={'name': str,
+                                'interface': str,
+                                'region': str,
+                                'uri': str})
 
     def create(self, req, resp):
         endpoint = obj(req, infinitystone_endpoint)

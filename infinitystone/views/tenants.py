@@ -30,10 +30,8 @@
 from luxon import register
 from luxon import router
 from luxon.helpers.api import sql_list, obj
-from luxon import db
-from luxon.helpers.api import raw_list, search_params
+from luxon.utils import sql
 
-from infinitystone.helpers.tenants import get_tenants
 from infinitystone.models.tenants import infinitystone_tenant
 
 
@@ -59,26 +57,90 @@ class Tenants(object):
         return obj(req, infinitystone_tenant, sql_id=id)
 
     def tenants(self, req, resp, domain=None, tenant_id=None):
-        limit = int(req.query_params.get('limit', 10))
-        page = int(req.query_params.get('page', 1))
+        f_id = sql.Field('infinitystone_tenant.id')
+        f_name = sql.Field('infinitystone_tenant.name')
+        f_crm_id = sql.Field('infinitystone_tenant.crm_id')
+        f_tenants_domain = sql.Field('infinitystone_tenant.domain')
+        f_roles_domain = sql.Field('infinitystone_user_role.domain')
+        f_tenants_tenant_id = sql.Field('infinitystone_tenant.tenant_id')
+        f_roles_tenant_id = sql.Field('infinitystone_user_role.tenant_id')
+        f_user_id = sql.Field('infinitystone_user_role.user_id')
 
-        if tenant_id is None:
-            tenant_id = req.context_tenant_id
+        v_null = sql.Value(None)
+        v_user_id = sql.Value(req.credentials.user_id)
 
-        if not domain:
-            domain = req.context_domain
+        if domain:
+            v_domain = sql.Value(domain)
+        else:
+            v_domain = sql.Value(req.context_domain)
 
-        search = {}
-        for field, value in search_params(req):
-            search['infinitystone_tenant.' + field] = value
+        if tenant_id:
+            v_tenant_id = sql.Value(tenant_id)
+        else:
+            v_tenant_id = sql.Value(req.context_tenant_id)
 
-        results = get_tenants(req.credentials.user_id,
-                              domain=domain,
-                              tenant_id=tenant_id,
-                              page=page,
-                              limit=limit, search=search)
+        # Check if domain and tenant matches.
+        jg_user_role_dom_ten = sql.Group(
+            sql.And(f_roles_tenant_id == f_id,
+                    f_roles_domain == f_tenants_domain)
+        )
+        # Check if domain and sub tenant matches.
+        jg_user_role_dom_subten = sql.Group(
+            sql.And(f_roles_tenant_id == f_tenants_tenant_id,
+                    f_roles_domain == f_tenants_domain)
+        )
+        # Check if tenant is null and domain matches.
+        jg_user_role_dom = sql.Group(
+            sql.And(f_roles_tenant_id == v_null,
+                    f_roles_domain == f_tenants_domain)
+        )
+        # Check if tnenat is null and domain is null
+        jg_user_role_null = sql.Group(
+            sql.And(f_roles_tenant_id == v_null,
+                    f_roles_domain == v_null)
+        )
+        # Check if domain is null and tenant id matches.
+        jg_user_role_ten = sql.Group(
+            sql.And(f_roles_tenant_id == f_id,
+                    f_roles_domain == v_null)
+        )
+        # Check if domain is null and sub tenant id matches.
+        jg_user_role_subten = sql.Group(
+            sql.And(f_roles_tenant_id == f_tenants_tenant_id,
+                    f_roles_domain == v_null)
+        )
 
-        return raw_list(req, results, limit=limit, context=False, sql=True)
+        j_user_role = sql.Or(jg_user_role_dom_ten,
+                             jg_user_role_dom_subten,
+                             jg_user_role_dom,
+                             jg_user_role_null,
+                             jg_user_role_ten,
+                             jg_user_role_subten)
+
+        select = sql.Select('infinitystone_tenant', distinct=True)
+        select.fields = (f_id,
+                         f_name,
+                         f_crm_id,
+                         f_tenants_domain,
+                         f_tenants_tenant_id,)
+        select.inner_join('infinitystone_user_role', j_user_role)
+        select.where = f_user_id == v_user_id
+
+        if domain and domain.lower() == 'none':
+            select.where = f_tenants_domain == v_null
+        else:
+            select.where = f_tenants_domain == v_domain
+
+        select.where = sql.Group(
+            sql.Or(f_id == v_tenant_id,
+                   f_tenants_tenant_id == v_tenant_id))
+
+        return sql_list(req,
+                        select,
+                        context=False,
+                        search={'infinitystone_tenant.name': str,
+                                'infinitystone_tenant.crm_id': str,
+                                'infinitystone_tenant.tenant_id': str})
 
     def create(self, req, resp):
         tenant = obj(req, infinitystone_tenant)

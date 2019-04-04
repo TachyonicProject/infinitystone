@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Frans Rademan.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,11 @@
 from luxon import register
 from luxon import router
 from luxon import GetLogger
-from luxon.helpers.api import raw_list, sql_list, obj, search_params
+from luxon.helpers.api import sql_list, obj
+from infinitystone.models.domains import infinitystone_domain
+from luxon.utils import sql
 
 log = GetLogger(__name__)
-
-from infinitystone.models.domains import infinitystone_domain
-from infinitystone.helpers.domains import get_domains
 
 
 @register.resources()
@@ -56,18 +55,26 @@ class Domains(object):
         return obj(req, infinitystone_domain, sql_id=id)
 
     def domains(self, req, resp):
-        limit = int(req.query_params.get('limit', 10))
-        page = int(req.query_params.get('page', 1)) 
+        f_domain_id = sql.Field('infinitystone_domain.id')
+        f_name = sql.Field('infinitystone_domain.name')
+        f_domain = sql.Field('infinitystone_user_role.domain')
+        f_tenant_id = sql.Field('infinitystone_user_role.tenant_id')
+        f_user_id = sql.Field('infinitystone_user_role.user_id')
+        j_user_role = sql.Or(
+            sql.Group(f_domain == f_name),
+            sql.Group(sql.And(f_domain == sql.Value(None),
+                              f_tenant_id == sql.Value(None))))
+        w_user_id = f_user_id == sql.Value(req.credentials.user_id)
+        select = sql.Select('infinitystone_domain',
+                            distinct=True)
+        select.fields = f_domain_id, f_name
+        select.inner_join('infinitystone_user_role', j_user_role)
+        select.where = w_user_id
 
-        search = {}
-        for field, value in search_params(req):
-            search['infinitystone_domain.' + field] = value
-
-        results = get_domains(req.credentials.user_id,
-                              page=page,
-                              limit=limit * 2, search=search)
-
-        return raw_list(req, results, limit=limit, context=False, sql=True)
+        return sql_list(req,
+                        select,
+                        context=False,
+                        search={'name': str})
 
     def create(self, req, resp):
         domain = obj(req, infinitystone_domain)
