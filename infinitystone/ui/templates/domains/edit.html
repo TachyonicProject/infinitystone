@@ -8,6 +8,6 @@
 
 {% block buttons %}
     <a href="{{ APP }}/system/domains/{{id}}" class="btn btn-default">Cancel</a>
-    <a data-confirm="Remove domain {{domain}}?" data-close-window=2 href="{{ APP }}/system/domains/delete/{{id}}" class="btn btn-danger">Remove</a>
+    <a data-confirm="Remove domain {{domain}}?" data-table data-close-window=2 href="{{ APP }}/system/domains/delete/{{id}}" class="btn btn-danger">Remove</a>
     <a href="{{ APP }}/system/domains/edit/{{id}}" data-form="form" class="btn btn-primary">Save</a>
 {% endblock %}

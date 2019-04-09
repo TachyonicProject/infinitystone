@@ -10,13 +10,13 @@
                 <th id='domain'>Domain</th>
                 <th id='tenant'>Tenant</th>
                 <th id='role'>Role</th>
-                <th data-confirm="Delete user role?" data-href="/accounts/users/rm_role/{{id}}" data-close-window width="2rem">
+                <th data-confirm="Delete user role?" data-href="/accounts/users/rm_role/{{id}}" data-table data-close-window width="2rem">
                     <span data-feather="minus-square"></span>
                 </th>
             </tr>
         </thead>
     </table>
-     <form id='role_form' autocomplete="off" data-msg="Succesfully added role" data-datatable action="{{APP}}/accounts/users/set_role/{{id}}" enctype="multipart/form-data" class="row">
+     <form id='role_form' autocomplete="off" data-msg="Succesfully added role" data-table action="{{APP}}/accounts/users/set_role/{{id}}" enctype="multipart/form-data" class="row">
          <div class="col-sm-3">
              <select id="role_add_domain" name="domain" data-id="name" data-url="/v1/domains" data-allow-clear data-placeholder="Select Domain">
                 <option value=""></option>
@@ -55,6 +55,6 @@
 
 {% block buttons %}
     <a href="{{ APP }}/accounts/users/{{id}}" class="btn btn-default">Cancel</a>
-    <a data-confirm="Remove user {{username}}?" data-close-windows="2" href="{{ APP }}/accounts/users/delete/{{id}}" class="btn btn-danger">Remove</a>
+    <a data-confirm="Remove user {{username}}?" data-table data-close-windows="2" href="{{ APP }}/accounts/users/delete/{{id}}" class="btn btn-danger">Remove</a>
     <a href="{{ APP }}/accounts/users/edit/{{id}}" data-form="form" class="btn btn-primary">Save</a>
 {% endblock %}
