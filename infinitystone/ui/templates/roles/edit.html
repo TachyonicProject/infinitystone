@@ -8,7 +8,7 @@
 
 {% block buttons %}
     <a href="{{ APP }}/system/roles/{{id}}" class="btn btn-default">Cancel</a>
-    <a data-confirm="Remove role {{role}}?" data-close-windows=2 href="{{ APP }}/system/roles/delete/{{id}}" class="btn btn-danger">Remove</a>
+    <a data-confirm="Remove role {{role}}?" data-table data-close-windows=2 href="{{ APP }}/system/roles/delete/{{id}}" class="btn btn-danger">Remove</a>
     <a href="{{ APP }}/system/roles/edit/{{id}}" data-form="form" class="btn btn-primary">Save</a>
 {% endblock %}
 
