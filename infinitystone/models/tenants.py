@@ -48,7 +48,7 @@ class infinitystone_tenant(SQLModel):
     tenant_index = SQLModel.Index(domain, tenant_id)
     tenant_name_search = SQLModel.Index(name)
     tenant_crm_search = SQLModel.Index(crm_id)
-    unique_tenant = SQLModel.UniqueIndex(name, crm_id, domain)
+    unique_tenant = SQLModel.UniqueIndex(name)
     primary_key = id
     tenant_domain_ref = SQLModel.ForeignKey(domain, infinitystone_domain.name,
                                             on_delete='RESTRICT',

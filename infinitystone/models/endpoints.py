@@ -44,7 +44,6 @@ class infinitystone_endpoint(SQLModel):
     creation_time = SQLModel.DateTime(default=now, internal=True)
     primary_key = id
     unique_endpoint_int = SQLModel.UniqueIndex(name, interface, region)
-    unique_endpoint_uri = SQLModel.UniqueIndex(interface, uri, region)
     endpoint_name = SQLModel.Index(name)
     endpoint_find = SQLModel.Index(name, interface)
     endpoint_exact = SQLModel.Index(name, interface, region)
