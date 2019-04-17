@@ -113,10 +113,18 @@ class Users(object):
                                 'name': str})
 
     def create(self, req, resp):
+        metadata = None
+        if req.json.get('metadata'):
+            metadata = req.json['metadata']
+            del req.json['metadata']
+
         user = obj(req, infinitystone_user,
                    hide=('password',))
         if req.json.get('password'):
             user['password'] = hash(req.json['password'])
+        if metadata:
+            user['metadata'] = js.dumps(metadata)
+
         user.commit()
         return user
 
