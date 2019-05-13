@@ -38,7 +38,7 @@ from infinitystone.ui.models.tenants import infinitystone_tenant
 
 g.nav_menu.add('/Accounts/Tenants',
                href='/accounts/tenants',
-               tag='users:admin',
+               tag='tenants:view',
                endpoint='identity',
                feather='paperclip')
 

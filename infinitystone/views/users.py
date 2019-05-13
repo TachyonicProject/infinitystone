@@ -82,7 +82,7 @@ class Users(object):
         router.add('GET', '/v1/user_roles', self.get_roles,
                    tag='login')
         router.add('GET', '/v1/user_roles/{user_id}', self.get_roles,
-                   tag='users:admin')
+                   tag='users:view')
 
         router.add('POST', '/v1/user_roles/{user_id}/{role}',
                    self.set_role,
@@ -113,10 +113,18 @@ class Users(object):
                                 'name': str})
 
     def create(self, req, resp):
+        metadata = None
+        if req.json.get('metadata'):
+            metadata = req.json['metadata']
+            del req.json['metadata']
+
         user = obj(req, infinitystone_user,
                    hide=('password',))
         if req.json.get('password'):
             user['password'] = hash(req.json['password'])
+        if metadata:
+            user['metadata'] = js.dumps(metadata)
+
         user.commit()
         return user
 
