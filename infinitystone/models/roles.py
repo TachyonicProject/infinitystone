@@ -45,6 +45,7 @@ ROLES = [
     (str(uuid4()), 'Minion', None, now()),
     (str(uuid4()), 'Virtualization', None, now()),
     (str(uuid4()), 'Endpoint', None, now()),
+    (str(uuid4()), 'Services Administrator', None, now())
 ]
 
 
