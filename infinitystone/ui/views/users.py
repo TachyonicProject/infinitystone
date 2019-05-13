@@ -37,7 +37,7 @@ from infinitystone.ui.models.users import infinitystone_user
 
 g.nav_menu.add('/Accounts/Users',
                href='/accounts/users',
-               tag='admin',
+               tag='users:view',
                endpoint='identity',
                feather='users')
 
