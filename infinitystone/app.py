@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2019 Christiaan Rademan <christiaan.rademan@gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,5 +30,6 @@
 import infinitystone.models
 
 import luxon.resources.wsgi.index
+import luxon.resources.wsgi.openapi
 
 import infinitystone.views

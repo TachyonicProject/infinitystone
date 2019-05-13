@@ -5,3 +5,4 @@ import infinitystone.views.roles
 import infinitystone.views.tenants
 import infinitystone.views.users
 import infinitystone.views.elements
+import infinitystone.views.resources
