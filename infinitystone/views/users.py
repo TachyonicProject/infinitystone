@@ -82,7 +82,7 @@ class Users(object):
         router.add('GET', '/v1/user_roles', self.get_roles,
                    tag='login')
         router.add('GET', '/v1/user_roles/{user_id}', self.get_roles,
-                   tag='users:admin')
+                   tag='users:view')
 
         router.add('POST', '/v1/user_roles/{user_id}/{role}',
                    self.set_role,
