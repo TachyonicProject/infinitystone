@@ -30,7 +30,6 @@
 from luxon import g
 from psychokinetic.openstack import Openstack
 
-
 class Keystone(object):
     def password(self, username, domain, credentials):
 
@@ -53,5 +52,6 @@ class Keystone(object):
             raise ValueError("No 'domain' provided")
 
         os.identity.authenticate(username, password, domain)
+        g.current_request.context['openstack'] = os
 
         return True
