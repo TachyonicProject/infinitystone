@@ -38,4 +38,4 @@ class SQL(object):
             raise ValueError("No 'password' provided in 'credentials'")
 
         authorize(username, password, domain)
-        return True
+        return {}
