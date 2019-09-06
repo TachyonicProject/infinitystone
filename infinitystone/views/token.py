@@ -130,7 +130,10 @@ class Token(object):
                     req.credentials.domain,
                     usr_cust_tenants[0])
             else:
-                req.credentials.default_tenant_id = usr_cust_tenants[0]
+                try:
+                    req.credentials.default_tenant_id = usr_cust_tenants[0]
+                except IndexError:
+                    pass
 
         return req.credentials
 
