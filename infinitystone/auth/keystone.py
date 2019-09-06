@@ -52,7 +52,7 @@ class Keystone(object):
         if not domain:
             raise ValueError("No 'domain' provided")
 
-        response = os.identity.authenticate(username, password, domain)
+        response = os.identity.authenticate(username, password, domain).json
 
         return {
             'openstack_token': os._login_token,
