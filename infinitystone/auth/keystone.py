@@ -54,4 +54,6 @@ class Keystone(object):
 
         os.identity.authenticate(username, password, domain)
 
-        return True
+        return {
+            'openstack_token': os._login_token
+        }
