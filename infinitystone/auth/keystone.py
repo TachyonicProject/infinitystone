@@ -55,8 +55,6 @@ class Keystone(object):
         response = os.identity.authenticate(username, password, domain).json
 
         return {
-            'openstack_token': os._login_token,
-            'openstack_token_expire': response['expire'],
-            'openstack_user_region': response['user_region'],
-            'openstack_user_confederation': response['user_confederation']
+            'os_unscoped_token': os._login_token,
+            'os_token_expire': response['token']['expires_at'],
         }
