@@ -40,7 +40,7 @@ class Keystone(object):
                                   fallback='RegionOne')
 
         if not domain:
-            region = g.app.config.get('auth',
+            domain = g.app.config.get('auth',
                                       'openstack_domain', fallback='default')
 
         os = Openstack(keystone_url=keystone_url, region=region)
