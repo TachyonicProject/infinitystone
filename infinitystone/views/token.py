@@ -95,7 +95,7 @@ class Token(object):
         username = request_object.get('username')
         domain = request_object.get('domain')
         if isinstance(credentials, dict):
-            method(username, domain, credentials=credentials)
+            metadata = method(username, domain, credentials=credentials)
         elif credentials is None:
             raise ValueError("Require 'credentials'")
         else:
@@ -117,7 +117,8 @@ class Token(object):
                             confederation=g.app.config.get(
                                 'auth',
                                 'confederation',
-                                fallback='Confederation1'))
+                                fallback='Confederation1'),
+                            metadata=metadata)
         req.credentials.roles = domain_roles + global_roles
         if len(req.credentials.roles) == 0:
             usr_cust_tenants = user_tenant(user_id, 'Customer')
@@ -130,7 +131,10 @@ class Token(object):
                     req.credentials.domain,
                     usr_cust_tenants[0])
             else:
-                req.credentials.default_tenant_id = usr_cust_tenants[0]
+                try:
+                    req.credentials.default_tenant_id = usr_cust_tenants[0]
+                except IndexError:
+                    pass
 
         return req.credentials
 

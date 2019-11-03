@@ -30,11 +30,18 @@
 from luxon import g
 from psychokinetic.openstack import Openstack
 
+
 class Keystone(object):
     def password(self, username, domain, credentials):
-        
+
         keystone_url = g.app.config.get('auth', 'keystone_url')
-        region = g.app.config.get('auth', 'openstack_region', fallback='RegionOne')
+        region = g.app.config.get('auth',
+                                  'openstack_region',
+                                  fallback='RegionOne')
+
+        if not domain:
+            domain = g.app.config.get('auth',
+                                      'openstack_domain', fallback='default')
 
         os = Openstack(keystone_url=keystone_url, region=region)
         try:
@@ -45,6 +52,9 @@ class Keystone(object):
         if not domain:
             raise ValueError("No 'domain' provided")
 
-        os.identity.authenticate(username, password, domain)
+        response = os.identity.authenticate(username, password, domain).json
 
-        return True
+        return {
+            'os_unscoped_token': os._login_token,
+            'os_token_expire': response['token']['expires_at'],
+        }

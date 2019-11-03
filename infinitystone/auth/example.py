@@ -38,6 +38,6 @@ class Example(object):
             raise ValueError("No 'password' provided in 'credentials'")
 
         if domain is None and username == 'root' and password == 'password':
-            return True
+            return {}
         else:
             raise AccessDeniedError('Invalid credentials provided')
