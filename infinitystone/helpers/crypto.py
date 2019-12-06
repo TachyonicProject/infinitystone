@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2018-2020 Christiaan Frans Rademan <chris@fwiw.co.za>.
+# All rights reserved.
+#
 # Copyright (c) 2018 Christiaan Rademan, Dave Kruger.
 # All rights reserved.
 #

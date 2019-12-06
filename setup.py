@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Christiaan Frans Rademan.
+# Copyright (c) 2018-2020 Christiaan Frans Rademan <chris@fwiw.co.za>.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -74,33 +74,6 @@ def requirements(path):
             dependency = req.read().splitlines()
 
     return dependency
-
-
-def list_modules(path, ext='py'):
-    filenames = glob.glob(os.path.join(path, '*.%s' % ext))
-
-    module_names = []
-    for name in filenames:
-        module, ext = os.path.splitext(os.path.basename(name))
-        if module != '__init__':
-            module_names.append(module)
-
-    return module_names
-
-
-def list_packages(package):
-    path = os.path.join(MYDIR, package)
-    packages = []
-
-    scan_dir = os.path.join(path)
-    top_dir = "/" + "/".join(scan_dir.strip('/').split('/')[:-1])
-
-    for directory, directories, files in os.walk(scan_dir):
-        if '__init__.py' in files:
-            packages.append((os.path.relpath(directory,
-                                             top_dir).replace('/', '.')))
-
-    return packages
 
 
 def read(filename):
