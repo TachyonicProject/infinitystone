@@ -28,6 +28,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 from luxon import g
+from luxon import js
 from luxon import router
 from luxon import register
 from luxon import render_template
@@ -105,11 +106,13 @@ class Users():
             return self.view(req, resp, id)
         else:
             user = req.context.api.execute('GET', '/v1/user/%s' % id,
-                                           endpoint='identity')
-            html_form = form(infinitystone_user, user.json)
+                                           endpoint='identity').json
+            html_form = form(infinitystone_user, user)
+            metadata = js.dumps(js.loads(user['metadata']))
             return render_template('infinitystone.ui/users/edit.html',
                                    form=html_form,
-                                   username=user.json['username'],
+                                   username=user['username'],
+                                   metadata=metadata,
                                    id=id,
                                    view="Edit User")
 
