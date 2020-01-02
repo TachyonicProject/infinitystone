@@ -4,6 +4,13 @@
     <form data-no-submit id="form" autocomplete="off" method='post' enctype="multipart/form-data">
         {{ form }}
     </form>
+    <h2>Metadata</h2>
+    <form data-no-submit method='post' enctype="multipart/form-data" disabled>
+        <div class="form-group">
+            <textarea rows="5" class="form-control" readonly disabled>{{metadata}}</textarea>
+        </div>
+    </form>
+    <h2>Permissions</h2>
     <table class="display" data-url="/v1/user_roles/{{id}}" width="100%">
         <thead>
             <tr>
